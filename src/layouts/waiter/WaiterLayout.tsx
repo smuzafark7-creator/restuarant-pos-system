@@ -17,7 +17,7 @@ export const WaiterLayout: React.FC<WaiterLayoutProps> = ({
   onNavigate 
 }) => {
   return (
-    <div className="h-screen max-h-screen w-full flex flex-col overflow-hidden bg-[#080d1a] font-sans antialiased text-slate-100 select-none">
+    <div className="h-screen max-h-screen w-full flex flex-col overflow-hidden bg-[#080d1a] font-sans antialiased text-slate-200 select-none">
       {/* 1. PERSISTENT MASTER TOP HEADER - pinned at the top */}
       <div className="shrink-0 z-30">
         <WaiterHeader />

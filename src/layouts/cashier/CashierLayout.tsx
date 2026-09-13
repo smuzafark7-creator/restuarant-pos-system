@@ -17,11 +17,11 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
   onNavigate 
 }) => {
   return (
-    <div className="min-h-screen bg-[#0b1329] flex flex-col font-sans antialiased text-slate-100">
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#080d1a] font-sans antialiased text-slate-200">
       {/* High-speed Cashier Counter Header */}
       <CashierHeader />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1 h-[calc(100vh-3.5rem)] overflow-hidden">
         {/* Compact Vertical Cashier Strip - Live Tables, Quick Punch, Unsettled Bills, Z-Report, Print Test */}
         <CashierSidebar 
           activeTabOverride={activeTabOverride}
@@ -29,7 +29,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         />
 
         {/* Operational Billing Terminal Workspace */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 bg-[#0b1329]">
+        <main className={`flex-1 h-full ${activeTabOverride === 'pos' ? 'overflow-hidden' : 'overflow-y-auto'} min-w-0 bg-[#080d1a]`}>
           {children}
         </main>
       </div>

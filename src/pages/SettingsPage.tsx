@@ -59,13 +59,19 @@ export const SettingsPage: React.FC = () => {
   const [kotPrinter, setKotPrinter] = useState<string>('Kitchen Printer');
   const [autoPrintOnBill, setAutoPrintOnBill] = useState<boolean>(true);
 
-  const currentBranchData = branchDetails[selectedBranchId as keyof typeof branchDetails];
+  const currentBranchData = branchDetails[selectedBranchId as keyof typeof branchDetails] || branchDetails.main || {
+    name: 'Main Branch',
+    address: '102 MG Road, Central Business District, Bangalore',
+    phone: '+91 80 2345 6789',
+    headerText: 'Welcome to Zaffran MG Road - Premium Dine-In',
+    footerText: 'Thank you for dining with us! Please visit again. Follow @zaffrankitchen'
+  };
 
   const handleBranchDetailChange = (field: string, val: string) => {
     setBranchDetails(prev => ({
       ...prev,
       [selectedBranchId]: {
-        ...prev[selectedBranchId as keyof typeof branchDetails],
+        ...(prev[selectedBranchId as keyof typeof branchDetails] || prev.main),
         [field]: val
       }
     }));

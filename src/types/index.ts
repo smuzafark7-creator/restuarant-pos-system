@@ -76,6 +76,14 @@ export type MenuCategory =
   | 'Beverages' 
   | 'Desserts';
 
+export interface ItemVariation {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export type ItemStockStatus = 'available' | 'few_left' | 'sold_out';
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -84,8 +92,18 @@ export interface MenuItem {
   gstRate: number; // e.g. 5 for 5%
   isVeg: boolean;
   available: boolean;
+  stockStatus?: ItemStockStatus;
+  stockCount?: number;
   description?: string;
   popular?: boolean;
+  variations?: ItemVariation[];
+}
+
+export interface DispatchedItemStats {
+  name: string;
+  totalServed: number;
+  dineIn: number;
+  takeaway: number;
 }
 
 export type ItemServeType = 'DINE_IN' | 'PARCEL';

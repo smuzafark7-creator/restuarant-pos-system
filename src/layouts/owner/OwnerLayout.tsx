@@ -34,7 +34,7 @@ export const OwnerLayout: React.FC<OwnerLayoutProps> = ({
           onNavigate={onNavigate}
         />
         {/* Scrollable Owner Management Content */}
-        <main className={`flex-1 h-full overflow-y-auto ${activeTabOverride === 'pos' ? 'p-0 bg-[#0b1329]' : 'p-6 bg-slate-50'}`}>
+        <main className={`flex-1 h-full ${activeTabOverride === 'pos' ? 'p-0 bg-[#F8FAFC] overflow-y-auto' : activeTabOverride === 'kitchen' ? 'p-0 bg-[#18191D] flex flex-col min-h-0' : 'p-6 bg-[#F8FAFC] overflow-y-auto'}`}>
           {children}
         </main>
       </div>

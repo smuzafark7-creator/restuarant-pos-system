@@ -1,4 +1,4 @@
-import { Branch, MenuItem, RestaurantTable, KOT, Bill, Customer, User } from '../types';
+import { Branch, MenuItem, RestaurantTable, KOT, Bill, Customer, User, BillRequest } from '../types';
 
 export const BRANCHES: Branch[] = [
   {
@@ -83,8 +83,14 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: false,
     available: true,
+    stockStatus: 'available',
     description: 'Fragrant dum cooked long-grain basmati rice with tender spiced chicken pieces and saffron.',
-    popular: true
+    popular: true,
+    variations: [
+      { id: 'var_cb_half', name: 'Half', price: 180 },
+      { id: 'var_cb_full', name: 'Full', price: 280 },
+      { id: 'var_cb_family', name: 'Family Pack', price: 550 },
+    ]
   },
   {
     id: 'item_2',
@@ -94,8 +100,15 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: false,
     available: true,
+    stockStatus: 'few_left',
+    stockCount: 4,
     description: 'Royal slow-cooked goat meat cooked in clay handi with aromatic whole spices.',
-    popular: true
+    popular: true,
+    variations: [
+      { id: 'var_mb_half', name: 'Half', price: 240 },
+      { id: 'var_mb_full', name: 'Full', price: 360 },
+      { id: 'var_mb_family', name: 'Family Pack', price: 720 },
+    ]
   },
   {
     id: 'item_3',
@@ -106,9 +119,30 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     isVeg: true,
     available: true,
     description: 'Garden fresh vegetables, cottage cheese and mint layered in dum basmati rice.',
-    popular: false
+    popular: false,
+    variations: [
+      { id: 'var_vb_half', name: 'Half', price: 140 },
+      { id: 'var_vb_full', name: 'Full', price: 220 },
+      { id: 'var_vb_family', name: 'Family Pack', price: 420 },
+    ]
   },
   // Starters
+  {
+    id: 'item_chips',
+    name: 'Plain Chips',
+    category: 'Starters',
+    price: 90,
+    gstRate: 5,
+    isVeg: true,
+    available: true,
+    description: 'Crispy salted potato chips freshly fried and seasoned.',
+    popular: true,
+    variations: [
+      { id: 'var_chips_reg', name: 'Regular', price: 90 },
+      { id: 'var_chips_med', name: 'Medium', price: 120 },
+      { id: 'var_chips_lrg', name: 'Large', price: 150 },
+    ]
+  },
   {
     id: 'item_4',
     name: 'Chicken 65',
@@ -118,7 +152,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     isVeg: false,
     available: true,
     description: 'Crispy fried boneless chicken tossed with curry leaves, crushed garlic and fiery red chillies.',
-    popular: true
+    popular: true,
+    variations: [
+      { id: 'var_c65_half', name: 'Half Plate', price: 160 },
+      { id: 'var_c65_full', name: 'Full Plate', price: 240 },
+    ]
   },
   {
     id: 'item_5',
@@ -129,17 +167,27 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     isVeg: true,
     available: true,
     description: 'Crisp fried paneer cubes tempered with curd, south spices and fresh coriander.',
-    popular: false
+    popular: false,
+    variations: [
+      { id: 'var_p65_half', name: 'Half Plate', price: 150 },
+      { id: 'var_p65_full', name: 'Full Plate', price: 220 },
+    ]
   },
   {
     id: 'item_6',
-    name: 'Tandoori Chicken (Half)',
+    name: 'Tandoori Chicken',
     category: 'Starters',
     price: 280,
     gstRate: 5,
     isVeg: false,
-    available: true,
-    description: 'Classic chargrilled chicken on the bone marinated in hung yoghurt and tandoori spices.'
+    available: false,
+    stockStatus: 'sold_out',
+    stockCount: 0,
+    description: 'Classic chargrilled chicken on the bone marinated in hung yoghurt and tandoori spices.',
+    variations: [
+      { id: 'var_tc_half', name: 'Half Plate', price: 280 },
+      { id: 'var_tc_full', name: 'Full Plate', price: 520 },
+    ]
   },
   {
     id: 'item_7',
@@ -149,7 +197,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'American sweet corn kernels deep fried crisp and seasoned with cracked pepper.'
+    description: 'American sweet corn kernels deep fried crisp and seasoned with cracked pepper.',
+    variations: [
+      { id: 'var_cc_reg', name: 'Regular', price: 120 },
+      { id: 'var_cc_lrg', name: 'Large', price: 180 },
+    ]
   },
   // Main Course
   {
@@ -161,7 +213,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     isVeg: false,
     available: true,
     description: 'Charred tandoori chicken simmered in rich creamy butter tomato makhani gravy.',
-    popular: true
+    popular: true,
+    variations: [
+      { id: 'var_bc_half', name: 'Half Handi', price: 190 },
+      { id: 'var_bc_full', name: 'Full Handi', price: 320 },
+    ]
   },
   {
     id: 'item_9',
@@ -172,7 +228,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     isVeg: true,
     available: true,
     description: 'Fresh cottage cheese blocks in mild satin smooth cashew and butter gravy.',
-    popular: true
+    popular: true,
+    variations: [
+      { id: 'var_pbm_half', name: 'Half Handi', price: 160 },
+      { id: 'var_pbm_full', name: 'Full Handi', price: 260 },
+    ]
   },
   {
     id: 'item_10',
@@ -182,7 +242,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Black lentils slow cooked overnight on charcoal embers with fresh cream and butter.'
+    description: 'Black lentils slow cooked overnight on charcoal embers with fresh cream and butter.',
+    variations: [
+      { id: 'var_dm_half', name: 'Half Handi', price: 140 },
+      { id: 'var_dm_full', name: 'Full Handi', price: 210 },
+    ]
   },
   {
     id: 'item_11',
@@ -192,7 +256,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: false,
     available: true,
-    description: 'Kashmiri delicacy of lamb braised in aromatic gravy with alkanet root and fennel.'
+    description: 'Kashmiri delicacy of lamb braised in aromatic gravy with alkanet root and fennel.',
+    variations: [
+      { id: 'var_mrj_half', name: 'Half Handi', price: 240 },
+      { id: 'var_mrj_full', name: 'Full Handi', price: 380 },
+    ]
   },
   // Breads
   {
@@ -204,7 +272,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     isVeg: true,
     available: true,
     description: 'Soft tandoori leavened flatbread glazed generously with pure salted butter.',
-    popular: true
+    popular: true,
+    variations: [
+      { id: 'var_bn_single', name: 'Single Piece', price: 50 },
+      { id: 'var_bn_basket', name: 'Basket (3 Pcs)', price: 140 },
+    ]
   },
   {
     id: 'item_13',
@@ -214,7 +286,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Traditional refined flour bread baked fresh on clay tandoor walls.'
+    description: 'Traditional refined flour bread baked fresh on clay tandoor walls.',
+    variations: [
+      { id: 'var_pn_single', name: 'Single Piece', price: 35 },
+      { id: 'var_pn_basket', name: 'Basket (3 Pcs)', price: 95 },
+    ]
   },
   {
     id: 'item_14',
@@ -224,7 +300,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Tandoori naan topped with roasted chopped garlic and fresh cilantro.'
+    description: 'Tandoori naan topped with roasted chopped garlic and fresh cilantro.',
+    variations: [
+      { id: 'var_gn_single', name: 'Single Piece', price: 65 },
+      { id: 'var_gn_basket', name: 'Basket (3 Pcs)', price: 180 },
+    ]
   },
   {
     id: 'item_15',
@@ -234,7 +314,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Whole wheat round bread baked in tandoor.'
+    description: 'Whole wheat round bread baked in tandoor.',
+    variations: [
+      { id: 'var_tr_single', name: 'Single Piece', price: 25 },
+      { id: 'var_tr_basket', name: 'Basket (3 Pcs)', price: 70 },
+    ]
   },
   // Rice
   {
@@ -245,7 +329,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: false,
     available: true,
-    description: 'Wok tossed basmati rice with diced chicken, egg, scallions and light soy.'
+    description: 'Wok tossed basmati rice with diced chicken, egg, scallions and light soy.',
+    variations: [
+      { id: 'var_cfr_half', name: 'Half', price: 150 },
+      { id: 'var_cfr_full', name: 'Full', price: 240 },
+    ]
   },
   {
     id: 'item_17',
@@ -255,7 +343,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Classic wok-fried rice tossed with spring onions, carrots and cabbage.'
+    description: 'Classic wok-fried rice tossed with spring onions, carrots and cabbage.',
+    variations: [
+      { id: 'var_vfr_half', name: 'Half', price: 120 },
+      { id: 'var_vfr_full', name: 'Full', price: 190 },
+    ]
   },
   {
     id: 'item_18',
@@ -265,7 +357,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Steamed basmati rice tempered with aromatic cumin seeds and desi ghee.'
+    description: 'Steamed basmati rice tempered with aromatic cumin seeds and desi ghee.',
+    variations: [
+      { id: 'var_jr_half', name: 'Half', price: 110 },
+      { id: 'var_jr_full', name: 'Full', price: 160 },
+    ]
   },
   // Beverages
   {
@@ -276,7 +372,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Chilled refreshing Coca-Cola can (330ml).'
+    description: 'Chilled refreshing Coca-Cola can (330ml).',
+    variations: [
+      { id: 'var_coke_can', name: 'Regular (300ml)', price: 40 },
+      { id: 'var_coke_btl', name: 'Large (500ml)', price: 70 },
+    ]
   },
   {
     id: 'item_20',
@@ -286,7 +386,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Packaged mineral water 1 Litre bottle.'
+    description: 'Packaged mineral water 1 Litre bottle.',
+    variations: [
+      { id: 'var_wb_500', name: 'Regular (500ml)', price: 15 },
+      { id: 'var_wb_1000', name: 'Large (1000ml)', price: 25 },
+    ]
   },
   {
     id: 'item_21',
@@ -296,7 +400,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Sweet and salted freshly squeezed lemon juice with sparkling club soda.'
+    description: 'Sweet and salted freshly squeezed lemon juice with sparkling club soda.',
+    variations: [
+      { id: 'var_fls_reg', name: 'Regular (300ml)', price: 60 },
+      { id: 'var_fls_lrg', name: 'Large (500ml)', price: 90 },
+    ]
   },
   {
     id: 'item_22',
@@ -306,7 +414,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Thick churned creamy yogurt blended with Alphonso mango pulp.'
+    description: 'Thick churned creamy yogurt blended with Alphonso mango pulp.',
+    variations: [
+      { id: 'var_ml_reg', name: 'Regular (300ml)', price: 80 },
+      { id: 'var_ml_lrg', name: 'Large (500ml)', price: 120 },
+    ]
   },
   // Desserts
   {
@@ -317,17 +429,25 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Double scoop gourmet vanilla bean / belgian chocolate ice cream.'
+    description: 'Double scoop gourmet vanilla bean / belgian chocolate ice cream.',
+    variations: [
+      { id: 'var_ic_single', name: 'Single Scoop', price: 60 },
+      { id: 'var_ic_double', name: 'Double Scoop', price: 100 },
+    ]
   },
   {
     id: 'item_24',
-    name: 'Gulab Jamun (2 pcs)',
+    name: 'Gulab Jamun',
     category: 'Desserts',
     price: 90,
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Warm golden milk dumplings soaked in cardamom rose flavored sugar syrup.'
+    description: 'Warm golden milk dumplings soaked in cardamom rose flavored sugar syrup.',
+    variations: [
+      { id: 'var_gj_1pc', name: '1 Piece', price: 50 },
+      { id: 'var_gj_2pc', name: '2 Pieces', price: 90 },
+    ]
   },
   {
     id: 'item_25',
@@ -337,7 +457,11 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     gstRate: 5,
     isVeg: true,
     available: true,
-    description: 'Traditional slow-condensed milk kulfi garnished with pistachios in earthen pot.'
+    description: 'Traditional slow-condensed milk kulfi garnished with pistachios in earthen pot.',
+    variations: [
+      { id: 'var_mk_single', name: 'Single Pot', price: 70 },
+      { id: 'var_mk_double', name: 'Double Pot', price: 120 },
+    ]
   }
 ];
 
@@ -347,14 +471,45 @@ export const generateInitialTables = (branchId: 'main' | 'city' | 'beach'): Rest
     { id: `${branchId}_t2`, number: 2, name: 'Table 2', capacity: 4, branchId, status: 'occupied', currentAmount: 1120, seatedAt: '12:22 PM', guestCount: 3, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
     { id: `${branchId}_t3`, number: 3, name: 'Table 3', capacity: 4, branchId, status: 'billing', currentAmount: 1480, seatedAt: '11:45 AM', guestCount: 4, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
     { id: `${branchId}_t4`, number: 4, name: 'Table 4', capacity: 6, branchId, status: 'waiting', currentAmount: 890, seatedAt: '12:35 PM', guestCount: 5, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
-    { id: `${branchId}_t5`, number: 5, name: 'Table 5', capacity: 4, branchId, status: branchId === 'main' ? 'occupied' : 'available', currentAmount: branchId === 'main' ? 1030 : 0, seatedAt: branchId === 'main' ? '12:30 PM' : undefined, guestCount: branchId === 'main' ? 3 : undefined, guestName: branchId === 'main' ? 'Rahul Sharma' : undefined, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
-    { id: `${branchId}_t6`, number: 6, name: 'Table 6', capacity: 2, branchId, status: 'available', currentAmount: 0, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6' },
+    { id: `${branchId}_t5`, number: 5, name: 'Table 5', capacity: 4, branchId, status: branchId === 'main' ? 'billing' : 'available', currentAmount: branchId === 'main' ? 2709 : 0, seatedAt: branchId === 'main' ? '12:30 PM' : undefined, guestCount: branchId === 'main' ? 3 : undefined, guestName: branchId === 'main' ? 'Rahul Sharma' : undefined, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5', billRequested: branchId === 'main', billRequestedAt: branchId === 'main' ? '12:45 PM' : undefined, billRequestedBy: branchId === 'main' ? 'Ramesh Patel' : undefined },
+    { id: `${branchId}_t6`, number: 6, name: 'Table 6', capacity: 2, branchId, status: branchId === 'main' ? 'billing' : 'available', currentAmount: branchId === 'main' ? 840 : 0, seatedAt: branchId === 'main' ? '12:35 PM' : undefined, guestCount: branchId === 'main' ? 2 : undefined, guestName: branchId === 'main' ? 'Ananya Sen' : undefined, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6', billRequested: branchId === 'main', billRequestedAt: branchId === 'main' ? '12:52 PM' : undefined, billRequestedBy: branchId === 'main' ? 'Priya Nair' : undefined },
     { id: `${branchId}_t7`, number: 7, name: 'Table 7', capacity: 4, branchId, status: 'occupied', currentAmount: 760, seatedAt: '12:40 PM', guestCount: 2, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6' },
     { id: `${branchId}_t8`, number: 8, name: 'Table 8', capacity: 8, branchId, status: 'available', currentAmount: 0, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6' },
     { id: `${branchId}_t9`, number: 9, name: 'Table 9', capacity: 4, branchId, status: 'available', currentAmount: 0, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6' },
     { id: `${branchId}_t10`, number: 10, name: 'Table 10', capacity: 6, branchId, status: 'available', currentAmount: 0, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6' },
   ];
 };
+
+export const INITIAL_BILL_REQUESTS: BillRequest[] = [
+  {
+    id: 'req_demo_tbl5',
+    tableNumber: 'Table 5',
+    tableId: 'main_t5',
+    branchId: 'main',
+    branchName: 'Main Branch',
+    orderType: 'dine_in',
+    requestedBy: 'Ramesh Patel',
+    requestedAt: '12:45 PM',
+    status: 'pending',
+    kotNumbers: ['KOT-10023'],
+    totalAmount: 2709,
+    notes: 'Guest requested bill. Cash / UPI payment.'
+  },
+  {
+    id: 'req_demo_tbl6',
+    tableNumber: 'Table 6',
+    tableId: 'main_t6',
+    branchId: 'main',
+    branchName: 'Main Branch',
+    orderType: 'dine_in',
+    requestedBy: 'Priya Nair',
+    requestedAt: '12:52 PM',
+    status: 'pending',
+    kotNumbers: ['KOT-10026'],
+    totalAmount: 840,
+    notes: 'Awaiting quick cashier settlement.'
+  }
+];
 
 export const INITIAL_KOTS: KOT[] = [
   // --- MAIN BRANCH ---

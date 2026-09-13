@@ -3,13 +3,10 @@ import { useApp } from '../../context/AppContext';
 import { 
   Grid3X3, 
   ReceiptText, 
-  Clock, 
   FileSpreadsheet, 
   Printer, 
   Receipt,
-  X,
-  CheckCircle2,
-  AlertCircle
+  X
 } from 'lucide-react';
 
 interface CashierSidebarProps {
@@ -27,7 +24,6 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
     bills, 
     showToast,
     openReceiptModal,
-    currentBranch,
     currentUser
   } = useApp();
 
@@ -42,9 +38,6 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
       setActiveTab(tab);
     }
   };
-
-  // Occupied & billing tables
-  const billingTablesCount = tables.filter(t => t.status === 'billing' || t.status === 'occupied').length;
 
   // Unsettled / unpaid bills
   const unsettledCount = bills.filter(b => b.status === 'unpaid').length;
@@ -66,7 +59,7 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
   return (
     <>
       {/* Compact vertical strip strictly for Cashier Terminal */}
-      <aside className="w-18 sm:w-20 bg-[#0F172A] border-r border-slate-800 flex flex-col justify-between py-3 select-none font-mono shrink-0 shadow-lg">
+      <aside className="w-18 sm:w-20 bg-[#0f172a] border-r border-slate-800 h-full flex flex-col justify-between flex-shrink-0 overflow-hidden py-3 select-none shadow-xs font-sans">
         {/* Navigation Items */}
         <div className="flex flex-col items-center space-y-2">
           {/* 1. Live Tables */}
@@ -76,15 +69,15 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
             onClick={() => handleNavigate('tables')}
             className={`w-14 sm:w-16 h-16 rounded-xl flex flex-col items-center justify-center p-1.5 transition-all relative cursor-pointer ${
               currentActive === 'tables'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/60 font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
             title="Live Tables Floor View"
           >
             <div className="relative">
               <Grid3X3 className="w-5 h-5" />
               {pendingBillRequests.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 px-1 rounded-full bg-amber-500 text-slate-950 text-[9px] font-bold animate-pulse">
+                <span className="absolute -top-1.5 -right-2 px-1 rounded-full bg-amber-500 text-white text-[9px] font-bold animate-pulse">
                   {pendingBillRequests.length}
                 </span>
               )}
@@ -99,15 +92,15 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
             onClick={() => handleNavigate('pos')}
             className={`w-14 sm:w-16 h-16 rounded-xl flex flex-col items-center justify-center p-1.5 transition-all relative cursor-pointer ${
               currentActive === 'pos'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/60 font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
             title="High-speed POS Terminal"
           >
             <div className="relative">
               <ReceiptText className="w-5 h-5" />
               {cart.length > 0 && (
-                <span className="absolute -top-1.5 -right-2 px-1 rounded-full bg-emerald-400 text-slate-950 text-[9px] font-bold">
+                <span className="absolute -top-1.5 -right-2 px-1 rounded-full bg-emerald-600 text-white text-[9px] font-bold">
                   {cart.length}
                 </span>
               )}
@@ -122,8 +115,8 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
             onClick={() => handleNavigate('bills')}
             className={`w-14 sm:w-16 h-16 rounded-xl flex flex-col items-center justify-center p-1.5 transition-all relative cursor-pointer ${
               currentActive === 'bills'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/60 font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
             title="Settled & Unsettled Bills"
           >
@@ -140,17 +133,17 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
         </div>
 
         {/* Operational Terminal Actions: Day-End Z-Report & Print Test */}
-        <div className="flex flex-col items-center space-y-2 pt-2 border-t border-slate-800">
+        <div className="flex flex-col items-center space-y-2 pt-2 border-t border-slate-800 mt-auto flex-shrink-0">
           {/* 4. Day-End (Z-Report) */}
           <button
             id="cashier-sidebar-zreport"
             type="button"
             onClick={() => setIsZReportOpen(true)}
-            className="w-14 sm:w-16 h-15 rounded-xl flex flex-col items-center justify-center p-1 text-amber-400 hover:text-amber-300 hover:bg-slate-800/80 transition-all cursor-pointer"
+            className="w-14 sm:w-16 h-15 rounded-xl flex flex-col items-center justify-center p-1 text-amber-400 hover:text-amber-300 hover:bg-slate-800/60 transition-colors cursor-pointer"
             title="Generate Day-End Z-Report"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span className="text-[9px] mt-1 text-center leading-tight font-bold">Z-Report</span>
+            <span className="text-[9px] mt-1 text-center leading-tight font-medium">Z-Report</span>
           </button>
 
           {/* 5. Print Test */}
@@ -158,20 +151,20 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
             id="cashier-sidebar-print-test"
             type="button"
             onClick={handlePrintTest}
-            className="w-14 sm:w-16 h-15 rounded-xl flex flex-col items-center justify-center p-1 text-blue-400 hover:text-blue-300 hover:bg-slate-800/80 transition-all cursor-pointer"
+            className="w-14 sm:w-16 h-15 rounded-xl flex flex-col items-center justify-center p-1 text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
             title="Trigger Thermal Printer Test Page"
           >
             <Printer className="w-4 h-4" />
-            <span className="text-[9px] mt-1 text-center leading-tight font-bold">Test Print</span>
+            <span className="text-[9px] mt-1 text-center leading-tight font-medium">Test Print</span>
           </button>
         </div>
       </aside>
 
       {/* Day-End Z-Report Modal */}
       {isZReportOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs font-mono">
-          <div className="w-full max-w-md bg-[#1E293B] border border-slate-700 rounded-2xl p-5 shadow-2xl text-white animate-in fade-in zoom-in-95 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-700">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans">
+          <div className="w-full max-w-md bg-[#0f172a] border border-slate-800 rounded-2xl p-5 shadow-2xl text-slate-200 animate-in fade-in zoom-in-95 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="w-5 h-5 text-amber-400" />
                 <div>
@@ -181,21 +174,21 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
               </div>
               <button 
                 onClick={() => setIsZReportOpen(false)}
-                className="text-slate-400 hover:text-white p-1"
+                className="text-slate-400 hover:text-white p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Summary Breakdown */}
-            <div className="space-y-2 text-xs bg-slate-900/90 p-3 rounded-xl border border-slate-800 divide-y divide-slate-800">
+            <div className="space-y-2 text-xs bg-[#080d1a] p-3.5 rounded-xl border border-slate-800 divide-y divide-slate-800">
               <div className="flex justify-between pb-1.5">
                 <span className="text-slate-400">Cashier on Duty:</span>
-                <span className="font-bold text-white">{currentUser?.name || 'Cashier'}</span>
+                <span className="font-semibold text-white">{currentUser?.name || 'Cashier'}</span>
               </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-slate-400">Total Invoices Settled:</span>
-                <span className="font-bold text-white">{bills.length}</span>
+                <span className="font-semibold text-white">{bills.length}</span>
               </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-slate-400">Gross Sales:</span>
@@ -203,17 +196,17 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
               </div>
               <div className="flex justify-between py-1.5">
                 <span className="text-slate-400">GST Collected (5%):</span>
-                <span className="font-bold text-slate-300">₹{totalGst.toFixed(2)}</span>
+                <span className="font-semibold text-white">₹{totalGst.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between py-1.5 text-emerald-300">
+              <div className="flex justify-between py-1.5 text-emerald-400">
                 <span>Cash Drawer Total:</span>
                 <span className="font-bold">₹{(5000 + cashSales).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between py-1.5 text-blue-300">
+              <div className="flex justify-between py-1.5 text-sky-400">
                 <span>UPI / QR Digital:</span>
                 <span className="font-bold">₹{upiSales.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between pt-1.5 text-purple-300">
+              <div className="flex justify-between pt-1.5 text-purple-400">
                 <span>Card Terminal:</span>
                 <span className="font-bold">₹{cardSales.toFixed(2)}</span>
               </div>
@@ -223,7 +216,7 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
               <button
                 type="button"
                 onClick={() => setIsZReportOpen(false)}
-                className="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 cursor-pointer"
+                className="flex-1 py-2 rounded-lg bg-[#080d1a] hover:bg-slate-800 text-xs font-medium text-slate-300 hover:text-white cursor-pointer transition-colors border border-slate-800"
               >
                 Close
               </button>
@@ -233,7 +226,7 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
                   showToast('Z-Report Printed', 'Day-End Z-Report summary printed to thermal register.', 'success');
                   setIsZReportOpen(false);
                 }}
-                className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print Z-Report</span>

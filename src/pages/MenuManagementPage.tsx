@@ -240,13 +240,13 @@ export const MenuManagementPage: React.FC = () => {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden border border-slate-700 font-mono">
-            <div className="px-5 py-3.5 bg-[#111827] text-white flex items-center justify-between">
-              <h3 className="text-sm font-bold">
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+            <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 text-slate-900 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900">
                 {editingItem ? `Edit: ${editingItem.name}` : 'Add New Menu Item'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
             </div>

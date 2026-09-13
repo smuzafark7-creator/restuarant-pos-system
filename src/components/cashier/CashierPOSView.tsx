@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { MenuItem, ItemVariation } from '../../types';
 import { CashierCategorySidebar } from './CashierCategorySidebar';
 import { CashierItemCard } from './CashierItemCard';
 import { CashierCart } from './CashierCart';
-import { Search, X, Sparkles } from 'lucide-react';
+import { ItemVariationModal } from '../ItemVariationModal';
+import { Search, X } from 'lucide-react';
 
 export const CashierPOSView: React.FC = () => {
   const {
@@ -23,6 +25,7 @@ export const CashierPOSView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [dietaryFilter, setDietaryFilter] = useState<'all' | 'veg' | 'non-veg'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [variationModalItem, setVariationModalItem] = useState<MenuItem | null>(null);
 
   // Safe category list
   const safeCategories = useMemo<string[]>(() => {
@@ -72,9 +75,27 @@ export const CashierPOSView: React.FC = () => {
     );
   }, [kots, currentBranch, cartOrderType, cartTableNumber]);
 
+  const handleItemClick = (item: MenuItem) => {
+    if (item.variations && item.variations.length > 0) {
+      setVariationModalItem(item);
+    } else {
+      addToCart(item, 1);
+    }
+  };
+
+  const handleSaveVariation = (baseItem: MenuItem, selectedVariation: ItemVariation) => {
+    const variantItem: MenuItem = {
+      ...baseItem,
+      id: `${baseItem.id}_${selectedVariation.id}`,
+      name: `${baseItem.name} (${selectedVariation.name})`,
+      price: selectedVariation.price,
+    };
+    addToCart(variantItem, 1);
+  };
+
   return (
-    <div className="h-full flex flex-col lg:flex-row overflow-hidden select-none bg-[#080d1a]">
-      {/* 1. Category Sidebar (Left) */}
+    <div className="h-full w-full flex flex-row overflow-hidden select-none bg-[#080d1a] font-sans">
+      {/* 1. Category Sidebar (Left) - Column 2 */}
       <CashierCategorySidebar
         categories={safeCategories}
         selectedCategory={selectedCategory}
@@ -83,10 +104,10 @@ export const CashierPOSView: React.FC = () => {
         totalItems={(menuItems || []).length}
       />
 
-      {/* 2. Menu Items & Fast Search (Middle) */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-[#080d1a] border-r border-slate-800">
-        {/* Search & Filters */}
-        <div className="p-3 bg-[#0f172a] border-b border-slate-800 shrink-0">
+      {/* 2. Menu Items & Fast Search (Middle) - Column 3: The ONLY scrolling section */}
+      <div className="flex-1 h-full overflow-y-auto p-3 bg-[#080d1a] border-r border-slate-800">
+        {/* Sticky Item Search & Filters */}
+        <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-3 p-3 bg-[#0f172a] border-b border-slate-800 shrink-0 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             {/* Search */}
             <div className="relative flex-1">
@@ -95,14 +116,14 @@ export const CashierPOSView: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Quick item search or PLU code..."
-                className="w-full pl-9 pr-8 py-2 bg-[#111a2e] hover:bg-[#131d36] border border-slate-700 focus:bg-[#111a2e] rounded-lg text-xs text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 transition-colors font-mono"
+                placeholder="Search dish or PLU code..."
+                className="w-full pl-9 pr-8 py-2 bg-[#080d1a] border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-700 transition-colors"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -110,14 +131,14 @@ export const CashierPOSView: React.FC = () => {
             </div>
 
             {/* Veg / Non-Veg Filters */}
-            <div className="flex items-center gap-1 bg-[#111a2e] p-1 rounded-lg border border-slate-700 shrink-0 font-mono text-xs">
+            <div className="flex items-center gap-1 bg-[#080d1a] p-1 rounded-lg border border-slate-800 shrink-0 text-xs">
               <button
                 type="button"
                 onClick={() => setDietaryFilter('all')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition-colors ${
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                   dietaryFilter === 'all'
-                    ? 'bg-slate-700 text-white'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-slate-800 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 All
@@ -125,66 +146,82 @@ export const CashierPOSView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDietaryFilter('veg')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition-colors flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
                   dietaryFilter === 'veg'
-                    ? 'bg-emerald-600 text-white'
+                    ? 'bg-emerald-600 text-white shadow-xs'
                     : 'text-emerald-400 hover:text-emerald-300'
                 }`}
               >
-                ● Veg
+                <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                Veg
               </button>
               <button
                 type="button"
                 onClick={() => setDietaryFilter('non-veg')}
-                className={`px-2.5 py-1 rounded text-xs font-bold transition-colors flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
                   dietaryFilter === 'non-veg'
-                    ? 'bg-rose-600 text-white'
+                    ? 'bg-rose-700 text-white shadow-xs'
                     : 'text-rose-400 hover:text-rose-300'
                 }`}
               >
-                ▲ Non-Veg
+                <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                Non-Veg
               </button>
             </div>
           </div>
         </div>
 
         {/* Cards Grid */}
-        <div className="flex-1 overflow-y-auto p-3.5 bg-[#080d1a]">
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
-            {filteredItems.map(item => {
-              const cartEntry = (cart || []).find(c => c.item.id === item.id);
-              const inCartQty = cartEntry ? cartEntry.quantity : 0;
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+          {filteredItems.map(item => {
+            const matchingCartItems = (cart || []).filter(
+              c => c.item.id === item.id || c.item.id.startsWith(`${item.id}_`)
+            );
+            const inCartQty = matchingCartItems.reduce((acc, c) => acc + c.quantity, 0);
 
-              return (
-                <CashierItemCard
-                  key={item.id}
-                  item={item}
-                  inCartQty={inCartQty}
-                  onAdd={() => addToCart(item, 1)}
-                  onIncrement={() => updateCartQuantity(item.id, 1)}
-                  onDecrement={() => updateCartQuantity(item.id, -1)}
-                />
-              );
-            })}
-          </div>
-
-          {filteredItems.length === 0 && (
-            <div className="flex flex-col items-center justify-center p-12 text-slate-500 font-mono">
-              <p className="text-sm">No items found matching criteria.</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                  setDietaryFilter('all');
+            return (
+              <CashierItemCard
+                key={item.id}
+                item={item}
+                inCartQty={inCartQty}
+                onAdd={() => handleItemClick(item)}
+                onIncrement={() => {
+                  if (item.variations && item.variations.length > 0) {
+                    handleItemClick(item);
+                  } else {
+                    updateCartQuantity(item.id, 1);
+                  }
                 }}
-                className="mt-3 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold border border-slate-700 cursor-pointer"
-              >
-                Reset Filters
-              </button>
-            </div>
-          )}
+                onDecrement={() => {
+                  if (item.variations && item.variations.length > 0) {
+                    if (matchingCartItems.length > 0) {
+                      updateCartQuantity(matchingCartItems[matchingCartItems.length - 1].item.id, -1);
+                    }
+                  } else {
+                    updateCartQuantity(item.id, -1);
+                  }
+                }}
+              />
+            );
+          })}
         </div>
+
+        {filteredItems.length === 0 && (
+          <div className="flex flex-col items-center justify-center p-12 text-slate-400">
+            <p className="text-sm">No items found matching criteria.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+                setDietaryFilter('all');
+              }}
+              className="mt-3 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 cursor-pointer"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 3. Cashier Order, Audit & Settlement Panel (Right) */}
@@ -194,6 +231,14 @@ export const CashierPOSView: React.FC = () => {
         tableNumber={cartTableNumber}
         setTableNumber={setCartTableNumber}
         activeSessionKots={activeSessionKots}
+      />
+
+      {/* Petpooja Item Variation Modal */}
+      <ItemVariationModal
+        isOpen={!!variationModalItem}
+        item={variationModalItem}
+        onClose={() => setVariationModalItem(null)}
+        onSave={handleSaveVariation}
       />
     </div>
   );

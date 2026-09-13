@@ -12,7 +12,7 @@ import {
   UtensilsCrossed
 } from 'lucide-react';
 
-interface OwnerHeaderProps {
+export interface OwnerHeaderProps {
   onToggleMobileSidebar?: () => void;
   className?: string;
 }
@@ -53,13 +53,13 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
     : (branches || []).find(b => b.id === currentBranch)?.name || 'Main Branch';
 
   return (
-    <header className={`h-16 bg-[#0F172A] text-white px-4 lg:px-6 flex items-center justify-between border-b border-slate-800 sticky top-0 z-50 flex-shrink-0 select-none shadow-md ${className || ''}`}>
+    <header className={`h-16 bg-white text-slate-900 px-4 lg:px-6 flex items-center justify-between border-b border-slate-200 sticky top-0 z-50 flex-shrink-0 select-none shadow-xs font-sans ${className || ''}`}>
       {/* Brand & Multi-Branch Selector */}
       <div className="flex items-center gap-3 md:gap-4">
         {onToggleMobileSidebar && (
           <button 
             onClick={onToggleMobileSidebar}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden transition-colors"
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 md:hidden transition-colors cursor-pointer"
             title="Toggle Menu"
           >
             <span className="sr-only">Toggle navigation</span>
@@ -70,57 +70,57 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
         )}
 
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-sm font-bold">
+          <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-xs font-bold">
             <UtensilsCrossed className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-tight uppercase text-white leading-none font-mono">
+            <h1 className="text-sm font-bold tracking-tight uppercase text-slate-900 leading-none">
               Zaffran Flavours
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] tracking-wider text-emerald-400 font-mono font-medium">EXECUTIVE MANAGEMENT</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+              <span className="text-[10px] tracking-wider text-emerald-700 font-semibold">EXECUTIVE MANAGEMENT</span>
             </div>
           </div>
         </div>
 
-        <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+        <div className="h-6 w-px bg-slate-200 hidden sm:block" />
 
         {/* Multi-Branch Selector */}
         <div className="relative">
           <button
             id="owner-branch-selector-btn"
             onClick={() => setShowBranchDropdown(prev => !prev)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs font-medium transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium transition-colors cursor-pointer"
           >
-            <Building2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-slate-200 font-semibold">{currentBranchLabel}</span>
+            <Building2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="text-slate-800 font-semibold">{currentBranchLabel}</span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
           {showBranchDropdown && (
             <div 
-              className="absolute left-0 mt-1.5 w-64 bg-[#1E293B] border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs font-mono animate-in fade-in zoom-in-95"
+              className="absolute left-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-50 text-xs animate-in fade-in zoom-in-95"
               onMouseLeave={() => setShowBranchDropdown(false)}
             >
-              <div className="px-3 py-1.5 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
+              <div className="px-3 py-1.5 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
                 Select Branch Scope
               </div>
               <button
                 onClick={() => { setBranch('all'); setShowBranchDropdown(false); }}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-800 transition-colors ${
-                  currentBranch === 'all' ? 'text-emerald-400 font-semibold bg-slate-800/70' : 'text-slate-200'
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer ${
+                  currentBranch === 'all' ? 'text-emerald-700 font-bold bg-emerald-50/70' : 'text-slate-700'
                 }`}
               >
                 <span>All Branches (Consolidated)</span>
-                <span className="text-[10px] bg-slate-900 px-1.5 py-0.5 rounded text-slate-400 border border-slate-800">Total</span>
+                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 border border-slate-200">Total</span>
               </button>
               {branches.map(b => (
                 <button
                   key={b.id}
                   onClick={() => { setBranch(b.id as BranchId); setShowBranchDropdown(false); }}
-                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-800 transition-colors ${
-                    currentBranch === b.id ? 'text-emerald-400 font-semibold bg-slate-800/70' : 'text-slate-200'
+                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer ${
+                    currentBranch === b.id ? 'text-emerald-700 font-bold bg-emerald-50/70' : 'text-slate-700'
                   }`}
                 >
                   <span>{b.name}</span>
@@ -135,11 +135,11 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
       {/* Right Controls: Global Clock, Reset Demo, Notifications, Profile & Logout */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Global Date/Time */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-md bg-slate-800/70 border border-slate-700/50 text-xs font-mono text-slate-300">
-          <Clock className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-600">
+          <Clock className="w-3.5 h-3.5 text-emerald-600" />
           <span>{currentDate}</span>
-          <span className="text-slate-600">•</span>
-          <span className="font-semibold text-white tracking-wider">{currentTime}</span>
+          <span className="text-slate-300">•</span>
+          <span className="font-semibold text-slate-900 tracking-wider">{currentTime}</span>
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
         </div>
 
@@ -147,9 +147,9 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
         <button
           onClick={resetDemoData}
           title="Reset to initial mock scenario"
-          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-semibold transition-colors cursor-pointer"
         >
-          <RotateCcw className="w-3.5 h-3.5 text-emerald-400" />
+          <RotateCcw className="w-3.5 h-3.5 text-emerald-600" />
           <span>Reset Demo</span>
         </button>
 
@@ -157,12 +157,12 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
         <div className="relative">
           <button
             onClick={() => setShowNotifications(prev => !prev)}
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-300 hover:text-white transition-colors relative cursor-pointer"
+            className="p-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors relative cursor-pointer"
             title="Kitchen Orders Notifications"
           >
             <Bell className="w-4 h-4" />
             {pendingKotsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-slate-950 text-[9px] font-bold flex items-center justify-center font-mono animate-pulse">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
                 {pendingKotsCount}
               </span>
             )}
@@ -170,24 +170,24 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
 
           {showNotifications && (
             <div 
-              className="absolute right-0 mt-2 w-72 bg-[#1E293B] border border-slate-700 rounded-xl shadow-2xl p-3 z-50 text-xs font-mono"
+              className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-50 text-xs"
               onMouseLeave={() => setShowNotifications(false)}
             >
-              <div className="font-semibold text-slate-200 pb-2 border-b border-slate-700 flex justify-between items-center">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400">Kitchen Activity</span>
-                <span className="text-[10px] text-emerald-400 font-semibold">{pendingKotsCount} active KOTs</span>
+              <div className="font-semibold text-slate-800 pb-2 border-b border-slate-100 flex justify-between items-center">
+                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Kitchen Activity</span>
+                <span className="text-[10px] text-emerald-700 font-semibold">{pendingKotsCount} active KOTs</span>
               </div>
-              <div className="py-2 space-y-2 max-h-56 overflow-y-auto divide-y divide-slate-700/60">
+              <div className="py-2 space-y-2 max-h-56 overflow-y-auto divide-y divide-slate-100">
                 {kots.slice(0, 4).map(k => (
                   <div key={k.id} className="pt-2 first:pt-0 flex justify-between items-center">
                     <div>
-                      <div className="font-semibold text-slate-200 text-[11px]">{k.kotNumber} • {k.tableNumber || 'Takeaway'}</div>
+                      <div className="font-semibold text-slate-800 text-[11px]">{k.kotNumber} • {k.tableNumber || 'Takeaway'}</div>
                       <div className="text-[10px] text-slate-400">{k.branchName} • {k.timeFormatted}</div>
                     </div>
                     <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase ${
                       k.status === 'ready' 
-                        ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' 
-                        : 'bg-amber-950 text-amber-400 border border-amber-800'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                        : 'bg-amber-50 text-amber-700 border border-amber-200'
                     }`}>
                       {k.status}
                     </span>
@@ -199,15 +199,15 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
         </div>
 
         {/* Owner Profile */}
-        <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-          <div className="w-8 h-8 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-700 flex items-center justify-center font-bold text-xs font-mono">
-            {currentUser?.name.charAt(0) || <User className="w-4 h-4" />}
+        <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs">
+            {currentUser?.name ? currentUser.name.charAt(0) : <User className="w-4 h-4" />}
           </div>
           <div className="hidden md:block text-left">
-            <div className="text-xs font-semibold text-slate-200 leading-tight">
+            <div className="text-xs font-semibold text-slate-900 leading-tight">
               {currentUser?.name || 'Owner'}
             </div>
-            <div className="text-[10px] text-emerald-400 font-mono font-semibold uppercase tracking-wider">
+            <div className="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider">
               {currentUser?.role || 'owner'}
             </div>
           </div>
@@ -217,7 +217,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
         <button
           onClick={logout}
           title="Sign Out"
-          className="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
         </button>

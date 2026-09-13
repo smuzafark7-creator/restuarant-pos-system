@@ -40,7 +40,7 @@ export const DashboardPage: React.FC = () => {
   } = useApp();
 
   const isConsolidated = currentBranch === 'all';
-  const branchName = isConsolidated ? 'All Branches (Consolidated)' : BRANCHES.find(b => b.id === currentBranch)?.name;
+  const branchName = isConsolidated ? 'All Branches (Consolidated)' : (BRANCHES.find(b => b.id === currentBranch)?.name || 'Main Branch');
 
   // -------------------------------------------------------------
   // WAITER ROLE: Limited Operational View (No sensitive financials)
@@ -61,7 +61,7 @@ export const DashboardPage: React.FC = () => {
               <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Floor Operations Console</h2>
             </div>
             <p className="text-xs text-slate-500 mt-1">
-              Floor dispatch & kitchen monitor for <strong className="text-slate-800">{branchName}</strong> • Logged in as <span className="text-emerald-700 font-bold">{currentUser.name} (Waiter)</span>
+              Floor dispatch & kitchen monitor for <strong className="text-slate-800">{branchName}</strong> • Logged in as <span className="text-emerald-700 font-bold">{currentUser?.name || 'Waiter'} (Waiter)</span>
             </p>
           </div>
 
@@ -176,10 +176,10 @@ export const DashboardPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="text-xs text-slate-700 space-y-0.5 max-h-24 overflow-y-auto">
-                    {kot.items.map((it, idx) => (
+                    {(kot.items || []).map((it, idx) => (
                       <div key={idx} className="flex justify-between">
-                        <span>{it.quantity}x {it.name}</span>
-                        {it.notes && <span className="text-[10px] text-amber-700 italic">({it.notes})</span>}
+                        <span>{it?.quantity || 1}x {it?.name || (it as any)?.menuItem?.name || 'Item'}</span>
+                        {it?.notes && <span className="text-[10px] text-amber-700 italic">({it.notes})</span>}
                       </div>
                     ))}
                   </div>
@@ -304,7 +304,7 @@ export const DashboardPage: React.FC = () => {
                     <span>{kot.items.reduce((s, i) => s + i.quantity, 0)} items</span>
                   </div>
                   <div className="text-[10px] text-slate-400 truncate">
-                    {kot.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+                    {(kot.items || []).map(i => `${i?.quantity || 1}x ${i?.name || (i as any)?.menuItem?.name || 'Item'}`).join(', ')}
                   </div>
                 </div>
               ))}
@@ -816,10 +816,10 @@ export const DashboardPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="text-slate-600 space-y-0.5 text-[11px] font-mono">
-                    {k.items.map((it, idx) => (
+                    {(k.items || []).map((it, idx) => (
                       <div key={idx} className="flex justify-between">
-                        <span>{it.quantity} × {it.name}</span>
-                        <span className="text-slate-400">₹{it.rate * it.quantity}</span>
+                        <span>{it?.quantity || 1} × {it?.name || (it as any)?.menuItem?.name || 'Item'}</span>
+                        <span className="text-slate-400">₹{((it?.rate || (it as any)?.menuItem?.price || 0) * (it?.quantity || 1))}</span>
                       </div>
                     ))}
                   </div>

@@ -7,9 +7,9 @@ interface ShellProps {
 
 export const KdsShell: React.FC<ShellProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-[#0B0F19] flex flex-col font-sans antialiased text-white select-none">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans antialiased text-slate-900 select-none">
       <Header variant="kds" />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 bg-[#0B0F19]">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 bg-[#F8FAFC]">
         {children}
       </main>
     </div>

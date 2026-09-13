@@ -90,18 +90,18 @@ export const WaiterHeader: React.FC = () => {
   const waiterName = currentUser?.name?.replace(/\s*\(Waiter\)$/i, '').trim() || 'Ramesh Patel';
 
   return (
-    <header className="h-16 bg-[#0F172A] text-white flex justify-between items-center w-full px-4 border-b border-slate-800 z-30 select-none shrink-0 shadow-sm font-sans">
+    <header className="h-16 bg-[#0f172a] text-slate-200 flex justify-between items-center w-full px-4 border-b border-slate-800 z-30 select-none shrink-0 shadow-xs font-sans">
       {/* 1. Left Section: Logo badge ("ZAFFRAN ORDER PAD - WAITER") */}
       <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold shadow-xs shrink-0">
-          <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200 font-bold shadow-2xs shrink-0">
+          <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
         </div>
         <div className="flex flex-col">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-xs sm:text-sm font-bold tracking-tight text-white font-mono uppercase whitespace-nowrap">
+            <span className="text-xs sm:text-sm font-semibold tracking-tight text-white uppercase whitespace-nowrap">
               Zaffran Order Pad
             </span>
-            <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono font-bold whitespace-nowrap">
+            <span className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-800/40 font-medium whitespace-nowrap">
               WAITER
             </span>
           </div>
@@ -113,7 +113,7 @@ export const WaiterHeader: React.FC = () => {
         {/* Fast Table Search/Filter Input */}
         <div className="relative flex-1 max-w-xs sm:max-w-sm" ref={searchContainerRef}>
           <div className="relative flex items-center">
-            <Search className="absolute left-2.5 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+            <Search className="absolute left-2.5 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
             <input
               id="waiter-table-search-input"
               ref={searchInputRef}
@@ -129,7 +129,7 @@ export const WaiterHeader: React.FC = () => {
                 }
               }}
               placeholder="Search Table No. (e.g. T1, T5)..."
-              className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700 focus:border-emerald-500 text-xs sm:text-sm text-white placeholder-slate-400 focus:outline-none transition-all"
+              className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-[#080d1a] border border-slate-800 focus:border-slate-700 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none transition-colors shadow-xs"
             />
             {tableSearchTerm && (
               <button
@@ -149,10 +149,10 @@ export const WaiterHeader: React.FC = () => {
 
           {/* Quick Table Search Dropdown Results */}
           {isSearchDropdownOpen && matchingTables.length > 0 && (
-            <div className="absolute left-0 right-0 mt-1.5 bg-[#1E293B] border border-slate-700 rounded-xl shadow-2xl p-1.5 z-50 text-xs font-mono animate-in fade-in zoom-in-95">
-              <div className="px-2 py-1 flex items-center justify-between text-[10px] text-slate-400 uppercase border-b border-slate-700/80 mb-1">
+            <div className="absolute left-0 right-0 mt-1.5 bg-[#0f172a] border border-slate-800 rounded-xl shadow-2xl p-1.5 z-50 text-xs animate-in fade-in zoom-in-95 font-sans">
+              <div className="px-2 py-1 flex items-center justify-between text-[10px] text-slate-400 uppercase font-semibold border-b border-slate-800 mb-1">
                 <span>Matching Tables ({matchingTables.length})</span>
-                <span className="text-[9px]">Click to jump to table</span>
+                <span className="text-[9px]">Click to jump</span>
               </div>
               <div className="space-y-1 max-h-56 overflow-y-auto">
                 {matchingTables.map(tbl => (
@@ -160,27 +160,27 @@ export const WaiterHeader: React.FC = () => {
                     key={tbl.id}
                     type="button"
                     onClick={() => handleSelectTable(tbl)}
-                    className="w-full text-left p-2 rounded-lg bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-emerald-500/60 flex items-center justify-between transition-all cursor-pointer"
+                    className="w-full text-left p-2 rounded-lg bg-[#080d1a] hover:bg-slate-800/80 border border-slate-800/80 flex items-center justify-between transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-xs">{tbl.name} (T{tbl.number})</span>
+                      <span className="font-semibold text-white text-xs">{tbl.name} (T{tbl.number})</span>
                       <span className="text-[10px] text-slate-400">• {tbl.capacity} Seats</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {tbl.status === 'occupied' ? (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/40 text-amber-400 border border-amber-800/40 font-medium">
                           OCCUPIED {tbl.currentAmount ? `₹${tbl.currentAmount}` : ''}
                         </span>
                       ) : tbl.status === 'billing' ? (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800 font-bold">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-950/40 text-purple-400 border border-purple-800/40 font-medium">
                           BILLING
                         </span>
                       ) : (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-800/40 font-medium">
                           AVAILABLE
                         </span>
                       )}
-                      <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                     </div>
                   </button>
                 ))}
@@ -190,29 +190,29 @@ export const WaiterHeader: React.FC = () => {
         </div>
 
         {/* Dynamic Active Floor / Filter State */}
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700/80 text-slate-300 shrink-0 font-mono">
+        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#080d1a] border border-slate-800 text-slate-200 shrink-0">
           <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-          <span className="text-[11px] lg:text-xs font-medium whitespace-nowrap">
+          <span className="text-[11px] lg:text-xs font-medium whitespace-nowrap text-slate-300">
             {floorBadgeLabel}
           </span>
         </div>
 
         {/* Active Tables: 5 */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700/80 text-slate-300 shrink-0 font-mono text-[11px] lg:text-xs">
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#080d1a] border border-slate-800 text-slate-200 shrink-0 text-[11px] lg:text-xs">
           <Layers className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-          <span className="whitespace-nowrap">Active Tables:</span>
-          <span className="font-bold text-amber-300">{occupiedCount}</span>
+          <span className="whitespace-nowrap text-slate-400">Active Tables:</span>
+          <span className="font-semibold text-emerald-400">{occupiedCount}</span>
         </div>
       </div>
 
       {/* 3. Right Section: Waiter Profile chip ("Ramesh Patel") & Shift Logout */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {/* Waiter Profile Chip */}
-        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-800/90 border border-slate-700/80 text-slate-200">
-          <div className="w-6 h-6 rounded-md bg-emerald-600/30 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#080d1a] border border-slate-800 text-slate-200">
+          <div className="w-6 h-6 rounded-md bg-slate-800 text-emerald-400 border border-slate-700 flex items-center justify-center font-bold text-xs shrink-0">
             <User className="w-3.5 h-3.5" />
           </div>
-          <span className="text-xs sm:text-sm font-medium whitespace-nowrap hidden sm:inline">
+          <span className="text-xs sm:text-sm font-medium whitespace-nowrap hidden sm:inline text-slate-200">
             {waiterName}
           </span>
         </div>
@@ -223,7 +223,7 @@ export const WaiterHeader: React.FC = () => {
           type="button"
           onClick={logout}
           title="End Waiter Shift & Sign Out"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#080d1a] hover:bg-rose-950/30 border border-slate-800 text-slate-400 hover:text-rose-400 text-xs font-medium transition-colors cursor-pointer shrink-0"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span className="hidden sm:inline whitespace-nowrap">Shift Logout</span>

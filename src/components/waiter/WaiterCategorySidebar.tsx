@@ -1,5 +1,4 @@
 import React from 'react';
-import { Utensils } from 'lucide-react';
 
 export interface WaiterCategorySidebarProps {
   categories: string[];
@@ -21,22 +20,22 @@ export const WaiterCategorySidebar: React.FC<WaiterCategorySidebarProps> = ({
   return (
     <aside
       id="waiter-menu-categories-sidebar"
-      className="w-44 sm:w-48 xl:w-52 bg-[#0f172a] text-slate-300 flex flex-col justify-between border-r border-slate-800 shrink-0 select-none h-full overflow-hidden"
+      className="w-48 sm:w-52 xl:w-56 bg-[#0f172a] text-slate-300 flex flex-col justify-between border-r border-slate-800 shrink-0 select-none h-full sticky top-0 overflow-hidden font-sans z-10"
     >
       {/* Category Header */}
-      <div className="p-3 border-b border-slate-800 bg-[#0f172a] shrink-0">
+      <div className="p-3.5 border-b border-slate-800 bg-[#0f172a] shrink-0">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-mono font-extrabold uppercase tracking-wider text-slate-300">
-            Menu Categories
+          <span className="text-xs font-bold uppercase tracking-wider text-white">
+            Categories
           </span>
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700">
+          <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700">
             {totalItems} Items
           </span>
         </div>
       </div>
 
       {/* Category List */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-none">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 sidebar-scrollbar">
         {safeCategories.map(cat => {
           const isSelected = selectedCategory === cat;
           const count = cat === 'All' ? totalItems : (categoryCounts[cat] || 0);
@@ -46,22 +45,18 @@ export const WaiterCategorySidebar: React.FC<WaiterCategorySidebarProps> = ({
               key={cat}
               type="button"
               onClick={() => onSelectCategory(cat)}
-              className={`w-full relative flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono transition-all duration-150 ease-in-out cursor-pointer group text-left ${
+              className={`group w-full relative flex items-center justify-between px-3.5 py-2.5 rounded-[10px] text-sm transition-all duration-[180ms] ease-in-out cursor-pointer text-left border-[1.5px] ${
                 isSelected
-                  ? 'bg-emerald-600 text-white font-bold shadow-xs border border-emerald-500'
-                  : 'bg-slate-900/40 text-slate-300 font-medium border border-slate-800/70 hover:bg-slate-800/70 hover:text-white hover:border-slate-700'
+                  ? 'bg-[#10B981] text-white font-bold border-[#10B981] shadow-[0_4px_14px_rgba(16,185,129,0.4)]'
+                  : 'bg-[#1A202C] text-[#E2E8F0] font-semibold border-[rgba(255,255,255,0.14)] hover:bg-[#242E42] hover:border-[rgba(16,185,129,0.6)] hover:text-white hover:translate-x-1 hover:shadow-[0_4px_12px_rgba(16,185,129,0.18)]'
               }`}
             >
-              {/* Active visual indicator */}
-              {isSelected && (
-                <div className="absolute left-1 top-2 bottom-2 w-1 bg-white rounded-full" />
-              )}
-              <span className={`truncate ${isSelected ? 'pl-1.5' : ''}`}>{cat}</span>
+              <span className="truncate">{cat}</span>
               <span
-                className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold shrink-0 transition-colors ${
+                className={`text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-emerald-800 text-emerald-100 border border-emerald-400/40'
-                    : 'bg-slate-800/90 text-slate-400 border border-slate-700/60 group-hover:bg-slate-800 group-hover:text-slate-200'
+                    ? 'bg-[#064E3B] text-white border border-emerald-500/30'
+                    : 'bg-[#2D3748] border border-[rgba(255,255,255,0.1)] text-[#94A3B8] group-hover:text-white group-hover:border-[rgba(16,185,129,0.4)]'
                 }`}
               >
                 {count}
@@ -71,12 +66,9 @@ export const WaiterCategorySidebar: React.FC<WaiterCategorySidebarProps> = ({
         })}
       </div>
 
-      {/* Categories Footer Info */}
-      <div className="p-2.5 border-t border-slate-800 bg-[#0f172a] shrink-0 text-[10px] font-mono text-slate-400 flex items-center justify-between">
-        <span className="text-slate-500 uppercase">Items in Cat</span>
-        <span className="font-bold text-slate-300">
-          {selectedCategory === 'All' ? totalItems : (categoryCounts[selectedCategory] || 0)}
-        </span>
+      {/* Footer Info */}
+      <div className="p-2.5 border-t border-slate-800 bg-[#0f172a] text-[10px] text-slate-400 text-center shrink-0">
+        Order Taking Mode
       </div>
     </aside>
   );

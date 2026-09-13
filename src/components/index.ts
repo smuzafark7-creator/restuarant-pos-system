@@ -2,6 +2,7 @@ export * from './BillDetailsModal';
 export * from './BillModal';
 export * from './NewOrderModal';
 export * from './ThermalReceiptModal';
+export * from './ItemVariationModal';
 export * from './ToastContainer';
 export * from './waiter';
 export * from './cashier';

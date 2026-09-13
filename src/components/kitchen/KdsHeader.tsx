@@ -41,29 +41,29 @@ export const KdsHeader: React.FC<KdsHeaderProps> = ({
   const stations = ['All Stations', 'Tandoor & Grill', 'Main Curry', 'Chinese & Wok', 'Breads & Rice'];
 
   return (
-    <header className="h-16 bg-[#090D16] text-white px-3 sm:px-6 flex items-center justify-between border-b border-slate-800 z-30 select-none shrink-0 font-mono">
+    <header className="h-16 bg-white text-slate-900 px-3 sm:px-6 flex items-center justify-between border-b border-slate-200 z-30 select-none shrink-0 shadow-xs">
       {/* Left: KDS Brand */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-slate-950 font-black">
+          <div className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center text-white font-bold shadow-xs">
             <ChefHat className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-sm font-extrabold uppercase tracking-wider text-white flex items-center gap-2">
+            <div className="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
               <span>ZAFFRAN KDS</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">LIVE</span>
+              <span className="text-[10px] px-1.5 py-0.2 rounded font-bold bg-amber-50 text-amber-800 border border-amber-200">LIVE</span>
             </div>
           </div>
         </div>
 
         {/* Live Active Tickets Pill */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs">
-          <span className="text-slate-400">Queue:</span>
-          <span className="font-bold text-amber-400">{activeTickets.length} Orders</span>
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+          <span className="text-slate-500">Queue:</span>
+          <span className="font-bold text-amber-700">{activeTickets.length} Orders</span>
         </div>
 
         {delayedCount > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-950/80 border border-rose-600 text-rose-300 text-xs font-bold animate-pulse">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold animate-pulse">
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>{delayedCount} Delayed (&gt;15m)</span>
           </div>
@@ -71,7 +71,7 @@ export const KdsHeader: React.FC<KdsHeaderProps> = ({
       </div>
 
       {/* Middle: Station Filter Pills */}
-      <div className="hidden lg:flex items-center gap-1 bg-[#111827] p-1 rounded-lg border border-slate-800">
+      <div className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
         {stations.map(station => (
           <button
             key={station}
@@ -79,8 +79,8 @@ export const KdsHeader: React.FC<KdsHeaderProps> = ({
             onClick={() => onSelectStation(station)}
             className={`px-3 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
               selectedStation === station
-                ? 'bg-amber-500 text-slate-950 font-bold'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-amber-500 text-white font-bold shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white'
             }`}
           >
             {station}
@@ -89,9 +89,9 @@ export const KdsHeader: React.FC<KdsHeaderProps> = ({
       </div>
 
       {/* Right: Clock, Sound Toggle, Logout */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#111827] border border-slate-800 text-xs font-mono text-slate-300">
-          <Clock className="w-3.5 h-3.5 text-emerald-400" />
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-700 font-medium">
+          <Clock className="w-3.5 h-3.5 text-emerald-600" />
           <span>{currentTime}</span>
         </div>
 
@@ -100,8 +100,8 @@ export const KdsHeader: React.FC<KdsHeaderProps> = ({
           onClick={onToggleMute}
           className={`p-2 rounded-lg border transition-colors cursor-pointer ${
             isMuted
-              ? 'bg-rose-950/60 border-rose-800 text-rose-300 hover:bg-rose-900'
-              : 'bg-emerald-950/60 border-emerald-800 text-emerald-300 hover:bg-emerald-900'
+              ? 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
           }`}
           title={isMuted ? 'Unmute KDS Alerts' : 'Mute KDS Alerts'}
         >
@@ -111,7 +111,7 @@ export const KdsHeader: React.FC<KdsHeaderProps> = ({
         <button
           type="button"
           onClick={logout}
-          className="p-2 rounded-lg bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-rose-300 border border-slate-700 transition-colors cursor-pointer"
+          className="p-2 rounded-lg bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer"
           title="Sign Out Kitchen"
         >
           <LogOut className="w-4 h-4" />

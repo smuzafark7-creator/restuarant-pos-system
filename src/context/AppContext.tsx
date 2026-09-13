@@ -19,7 +19,9 @@ import {
   Branch,
   BillRequest,
   ItemServeType,
-  KDSAlert
+  KDSAlert,
+  ItemStockStatus,
+  DispatchedItemStats
 } from '../types';
 import { 
   BRANCHES, 
@@ -29,7 +31,8 @@ import {
   INITIAL_KOTS, 
   INITIAL_BILLS, 
   INITIAL_CUSTOMERS, 
-  BENCHMARK_STATS 
+  BENCHMARK_STATS,
+  INITIAL_BILL_REQUESTS 
 } from '../data/mockData';
 
 interface AppContextType {
@@ -81,6 +84,7 @@ interface AppContextType {
   updateCartItemNotes: (itemId: string, notes: string) => void;
   updateCartItemServeType: (itemId: string, serveType: ItemServeType) => void;
   removeFromCart: (itemId: string) => void;
+  setCartItems: (items: CartItem[]) => void;
   clearCart: () => void;
   resetCartOrder: () => void;
   setCartPaidBill: (bill: Bill | null) => void;
@@ -93,7 +97,7 @@ interface AppContextType {
   holdOrder: () => void;
   
   // Flow actions
-  sendKOT: () => KOT | null;
+  sendKOT: (overrideTableNumber?: string) => KOT | null;
   updateKOTStatus: (kotId: string, status: KOTStatus) => void;
   voidKOTItem: (kotId: string, itemIndex: number, voidQty?: number, reason?: string) => boolean;
   kdsAlerts: KDSAlert[];
@@ -108,6 +112,7 @@ interface AppContextType {
   pendingBillRequests: BillRequest[];
   requestBill: (tableNumber?: string, notes?: string) => BillRequest | null;
   cancelBillRequest: (requestId: string) => void;
+  settleBillRequest: (requestId: string, paymentMethod?: PaymentMethod) => void;
 
   // Table actions
   tableSearchTerm: string;
@@ -122,6 +127,13 @@ interface AppContextType {
   addMenuItem: (item: Omit<MenuItem, 'id'>) => void;
   updateMenuItem: (item: MenuItem) => void;
   toggleMenuItemAvailability: (id: string) => void;
+  updateMenuItemStock: (id: string, stockStatus: ItemStockStatus, stockCount?: number) => void;
+  dispatchedItemStats: DispatchedItemStats[];
+  isKitchenDrawerOpen: boolean;
+  setIsKitchenDrawerOpen: (open: boolean) => void;
+  kitchenDrawerTab: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings';
+  setKitchenDrawerTab: (tab: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => void;
+  openKitchenDrawer: (tab?: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => void;
   addCustomer: (customer: Omit<Customer, 'id' | 'totalOrders' | 'totalSpent' | 'lastVisit'>) => void;
   updateCustomer: (customer: Customer) => void;
   
@@ -200,9 +212,67 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     storedData?.activeTab ?? 'dashboard'
   );
 
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(
-    storedData?.menuItems ?? INITIAL_MENU_ITEMS
-  );
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+    if (storedData?.menuItems && Array.isArray(storedData.menuItems)) {
+      const storedMap = new Map<string, MenuItem>(storedData.menuItems.map((m: MenuItem) => [m.id, m]));
+      const merged = INITIAL_MENU_ITEMS.map(initItem => {
+        const existing = storedMap.get(initItem.id);
+        if (existing) {
+          return {
+            ...existing,
+            name: initItem.name || existing.name,
+            variations: initItem.variations || existing.variations,
+            stockStatus: existing.stockStatus || initItem.stockStatus || 'available',
+            stockCount: existing.stockCount !== undefined ? existing.stockCount : initItem.stockCount,
+            available: existing.stockStatus === 'sold_out' ? false : (existing.available ?? initItem.available ?? true),
+          };
+        }
+        return initItem;
+      });
+      // Include any custom items created by the user
+      storedData.menuItems.forEach((m: MenuItem) => {
+        if (!merged.some(item => item.id === m.id)) {
+          merged.push(m);
+        }
+      });
+      return merged;
+    }
+    return INITIAL_MENU_ITEMS;
+  });
+
+  // Kitchen Drawer & Tools state
+  const [isKitchenDrawerOpen, setIsKitchenDrawerOpen] = useState<boolean>(false);
+  const [kitchenDrawerTab, setKitchenDrawerTab] = useState<'active' | 'completed' | 'stock86' | 'dispatched' | 'settings'>('active');
+
+  const openKitchenDrawer = (tab?: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => {
+    if (tab) {
+      setKitchenDrawerTab(tab);
+    }
+    setIsKitchenDrawerOpen(true);
+  };
+
+  // Live Shift/Session Dispatched Tracking (Real-time item-level counter with Dine-in vs Takeaway Breakdown)
+  const [dispatchedDishes, setDispatchedDishes] = useState<Record<string, { dineIn: number; takeaway: number }>>(() => {
+    return {
+      'Chicken Biryani': { dineIn: 9, takeaway: 5 }, // 14 Served (9 Dine-in | 5 Takeaway)
+      'Butter Naan': { dineIn: 16, takeaway: 6 }, // 22 Served (16 Dine-in | 6 Takeaway)
+      'Mutton Biryani': { dineIn: 5, takeaway: 2 }, // 7 Served (5 Dine-in | 2 Takeaway)
+      'Paneer Tikka': { dineIn: 6, takeaway: 2 }, // 8 Served (6 Dine-in | 2 Takeaway)
+      'Chicken 65': { dineIn: 8, takeaway: 3 }, // 11 Served (8 Dine-in | 3 Takeaway)
+      'Garlic Naan': { dineIn: 10, takeaway: 4 }, // 14 Served (10 Dine-in | 4 Takeaway)
+    };
+  });
+
+  const [dispatchedKotIds, setDispatchedKotIds] = useState<Set<string>>(new Set(['kot_10025']));
+
+  const dispatchedItemStats = useMemo<DispatchedItemStats[]>(() => {
+    return (Object.entries(dispatchedDishes) as [string, { dineIn: number; takeaway: number }][]).map(([name, counts]) => ({
+      name,
+      dineIn: counts.dineIn,
+      takeaway: counts.takeaway,
+      totalServed: counts.dineIn + counts.takeaway
+    })).sort((a, b) => b.totalServed - a.totalServed);
+  }, [dispatchedDishes]);
 
   const categories = useMemo<string[]>(() => {
     const list = menuItems || [];
@@ -265,9 +335,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   // Bill Requests state (for Waiter Request Bill -> Cashier Collect Payment)
-  const [billRequests, setBillRequests] = useState<BillRequest[]>(
-    storedData?.billRequests ?? []
-  );
+  const [billRequests, setBillRequests] = useState<BillRequest[]>(() => {
+    if (storedData?.billRequests && storedData.billRequests.length > 0) {
+      return storedData.billRequests;
+    }
+    return INITIAL_BILL_REQUESTS;
+  });
 
   // KDS real-time cancellation alerts state
   const [kdsAlerts, setKdsAlerts] = useState<KDSAlert[]>([]);
@@ -450,6 +523,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Order Already Paid', `Invoice #${cartPaidBill.billNumber} is finalized. Send KOT or Start New Order.`, 'info');
       return;
     }
+
+    const baseId = item.id.includes('_') ? item.id.split('_')[0] : item.id;
+    const currentItem = (menuItems || []).find(m => m.id === baseId) || item;
+
+    // Check Sold Out / 0 Stock
+    const isSoldOut = !currentItem.available || currentItem.stockStatus === 'sold_out' || (currentItem.stockStatus === 'few_left' && (currentItem.stockCount ?? 0) <= 0);
+    if (isSoldOut) {
+      showToast('Item Unavailable', 'Item currently unavailable in kitchen', 'warning');
+      return;
+    }
+
+    // Check "Few Left" limit
+    if (currentItem.stockStatus === 'few_left' && typeof currentItem.stockCount === 'number') {
+      const currentInCart = cart
+        .filter(c => c.item.id === baseId || c.item.id.startsWith(`${baseId}_`))
+        .reduce((sum, c) => sum + c.quantity, 0);
+
+      const maxAllowed = currentItem.stockCount;
+      if (currentInCart >= maxAllowed) {
+        showToast('Stock Limit Reached', `Only ${maxAllowed} left in kitchen stock. Cannot add more.`, 'warning');
+        return;
+      }
+
+      if (currentInCart + qty > maxAllowed) {
+        qty = maxAllowed - currentInCart;
+        showToast('Stock Limit Reached', `Only ${maxAllowed} left in kitchen stock. Adjusted quantity to ${qty}.`, 'info');
+      }
+    }
+
     setCart(prev => {
       const existingIndex = prev.findIndex(c => c.item.id === item.id);
       if (existingIndex > -1) {
@@ -470,6 +572,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Order Already Paid', `Invoice #${cartPaidBill.billNumber} is finalized. Send KOT or Start New Order.`, 'info');
       return;
     }
+
+    if (delta > 0) {
+      const baseId = itemId.includes('_') ? itemId.split('_')[0] : itemId;
+      const currentItem = (menuItems || []).find(m => m.id === baseId);
+      if (currentItem) {
+        const isSoldOut = !currentItem.available || currentItem.stockStatus === 'sold_out' || (currentItem.stockStatus === 'few_left' && (currentItem.stockCount ?? 0) <= 0);
+        if (isSoldOut) {
+          showToast('Item Unavailable', 'Item currently unavailable in kitchen', 'warning');
+          return;
+        }
+
+        if (currentItem.stockStatus === 'few_left' && typeof currentItem.stockCount === 'number') {
+          const currentInCart = cart
+            .filter(c => c.item.id === baseId || c.item.id.startsWith(`${baseId}_`))
+            .reduce((sum, c) => sum + c.quantity, 0);
+
+          if (currentInCart + delta > currentItem.stockCount) {
+            showToast('Stock Limit Reached', `Only ${currentItem.stockCount} left in kitchen stock.`, 'warning');
+            return;
+          }
+        }
+      }
+    }
+
     setCart(prev => {
       return prev
         .map(c => {
@@ -498,6 +624,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     setCart(prev => prev.filter(c => c.item.id !== itemId));
   };
+
+  const setCartItems = useCallback((items: CartItem[]) => {
+    setCart(items);
+  }, []);
 
   const clearCart = () => {
     setCart([]);
@@ -541,7 +671,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // KOT Flow
-  const sendKOT = (): KOT | null => {
+  const sendKOT = (overrideTableNumber?: string): KOT | null => {
     if (cart.length === 0) {
       showToast('No items', 'Please add items before sending KOT.', 'warning');
       return null;
@@ -564,14 +694,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const totalAmount = cart.reduce((sum, c) => sum + c.item.price * c.quantity, 0);
     const isPrepaid = !!cartPaidBill;
+    const effectiveTableNumber = overrideTableNumber || (cartOrderType === 'dine_in' ? cartTableNumber : undefined);
 
     const newKOT: KOT = {
       id: 'kot_' + Date.now(),
       kotNumber: kotNumberStr,
       branchId: branchObj.id,
       branchName: branchObj.name,
-      tableNumber: cartOrderType === 'dine_in' ? cartTableNumber : undefined,
-      orderType: cartOrderType,
+      tableNumber: effectiveTableNumber,
+      orderType: overrideTableNumber ? 'dine_in' : cartOrderType,
       items: cart.map(c => ({
         menuItemId: c.item.id,
         name: c.item.name,
@@ -622,10 +753,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
 
     // Update table status if dine_in
-    if (cartOrderType === 'dine_in' && cartTableNumber) {
+    const activeTable = effectiveTableNumber;
+    if ((cartOrderType === 'dine_in' || overrideTableNumber) && activeTable) {
       setTables(prev =>
         prev.map(tbl => {
-          if (tbl.branchId === effectiveBranch && tbl.name.toLowerCase() === cartTableNumber.toLowerCase()) {
+          if (tbl.branchId === effectiveBranch && tbl.name.toLowerCase() === activeTable.toLowerCase()) {
             const previousAmt = tbl.status === 'occupied' && tbl.currentAmount ? tbl.currentAmount : 0;
             return {
               ...tbl,
@@ -640,6 +772,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         })
       );
     }
+
+    // Decrement stock for Few Left items
+    setMenuItems(prev =>
+      prev.map(m => {
+        const baseId = m.id;
+        const orderedQty = cart
+          .filter(c => c.item.id === baseId || c.item.id.startsWith(`${baseId}_`))
+          .reduce((sum, c) => sum + c.quantity, 0);
+
+        if (orderedQty > 0 && m.stockStatus === 'few_left' && typeof m.stockCount === 'number') {
+          const nextCount = Math.max(0, m.stockCount - orderedQty);
+          return {
+            ...m,
+            stockCount: nextCount,
+            stockStatus: nextCount === 0 ? 'sold_out' : 'few_left',
+            available: nextCount > 0,
+          };
+        }
+        return m;
+      })
+    );
+
+    // Clear new punch items from cart
+    setCart([]);
+    setCartSpecialNotes('');
 
     showToast(
       'KOT Created & Sent',
@@ -668,6 +825,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const targetKot = kots.find(k => k.id === kotId);
     if (targetKot) {
+      // Live Shift/Session Dispatched Tracking (Dine-in vs Takeaway Breakdown)
+      if (status === 'ready' || status === 'served') {
+        if (!dispatchedKotIds.has(kotId)) {
+          setDispatchedKotIds(prev => new Set(prev).add(kotId));
+          const isTakeaway = targetKot.orderType === 'takeaway' || targetKot.orderType === 'parcel';
+          setDispatchedDishes(prev => {
+            const next = { ...prev };
+            targetKot.items.forEach(item => {
+              if (item.status !== 'voided') {
+                const itemParcel = item.serveType === 'PARCEL' || isTakeaway;
+                const current = next[item.name] || { dineIn: 0, takeaway: 0 };
+                next[item.name] = {
+                  dineIn: current.dineIn + (itemParcel ? 0 : item.quantity),
+                  takeaway: current.takeaway + (itemParcel ? item.quantity : 0)
+                };
+              }
+            });
+            return next;
+          });
+        }
+      }
       if (status === 'ready') {
         showToast('KOT Ready!', `${targetKot.kotNumber} for ${targetKot.tableNumber || 'Takeaway'} is ready for pickup!`);
         // If table exists, mark as ready (unless already billing)
@@ -1239,6 +1417,121 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('Request Cancelled', `Bill request for ${target.tableNumber} cancelled.`);
   };
 
+  const settleBillRequest = (requestId: string, paymentMethod: PaymentMethod = 'cash') => {
+    const target = billRequests.find(r => r.id === requestId);
+    if (!target) return;
+
+    const effectiveBranch = target.branchId;
+    const now = new Date();
+    const nextSeq = billSequence;
+    setBillSequence(prev => prev + 1);
+    const billNum = `INV-${nextSeq}`;
+
+    // Find table
+    const table = tables.find(
+      t => t.branchId === effectiveBranch && t.name.toLowerCase() === target.tableNumber.toLowerCase()
+    );
+
+    // Find active KOTs for this table
+    const tableKots = kots.filter(
+      k => k.branchId === effectiveBranch &&
+           k.tableNumber &&
+           k.tableNumber.toLowerCase() === target.tableNumber.toLowerCase() &&
+           !k.isBilled
+    );
+
+    // Gather items from KOTs or generate a dining order item
+    let billItems = tableKots.flatMap(k => k.items);
+    if (billItems.length === 0) {
+      billItems = [
+        {
+          id: `item_${Date.now()}`,
+          name: `${target.tableNumber} Dining Order`,
+          quantity: 1,
+          price: target.totalAmount,
+          category: 'Dining'
+        }
+      ];
+    }
+
+    const newBill: Bill = {
+      id: `bill_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      billNumber: billNum,
+      date: now.toISOString().split('T')[0],
+      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      branchId: effectiveBranch,
+      branchName: BRANCHES.find(b => b.id === effectiveBranch)?.name || 'Main Branch',
+      orderType: 'dine_in',
+      tableNumber: target.tableNumber,
+      customerName: table?.guestName || 'Walk-in Guest',
+      items: billItems,
+      subtotal: target.totalAmount,
+      gstPercent: 5,
+      gstAmount: 0,
+      discountAmount: 0,
+      grandTotal: target.totalAmount,
+      paymentMethod,
+      status: 'paid',
+      cashierName: currentUser?.name || 'Cashier'
+    };
+
+    setBills(prev => [newBill, ...prev]);
+
+    // Mark KOTs as billed/settled
+    if (tableKots.length > 0) {
+      const kotIds = tableKots.map(k => k.id);
+      setKots(prev =>
+        prev.map(k => {
+          if (kotIds.includes(k.id)) {
+            return {
+              ...k,
+              isBilled: true,
+              billId: newBill.id,
+              billedAt: now.toISOString(),
+              status: 'served'
+            };
+          }
+          return k;
+        })
+      );
+    }
+
+    // Mark bill request as settled
+    setBillRequests(prev =>
+      prev.map(r =>
+        r.id === requestId
+          ? { ...r, status: 'settled', billId: newBill.id, billNumber: newBill.billNumber }
+          : r
+      )
+    );
+
+    // Free up table
+    setTables(prev =>
+      prev.map(tbl => {
+        if (tbl.branchId === effectiveBranch && tbl.name.toLowerCase() === target.tableNumber.toLowerCase()) {
+          return {
+            ...tbl,
+            status: 'available',
+            currentAmount: 0,
+            guestCount: undefined,
+            guestName: undefined,
+            seatedAt: undefined,
+            billRequested: false,
+            billRequestedAt: undefined,
+            billRequestedBy: undefined
+          };
+        }
+        return tbl;
+      })
+    );
+
+    showToast(
+      'Payment Settled',
+      `${target.tableNumber} bill of ₹${target.totalAmount.toLocaleString('en-IN')} settled via ${paymentMethod.toUpperCase()}. Table is now Available.`,
+      'success'
+    );
+  };
+
   const pendingBillRequests = useMemo(() => {
     return billRequests.filter(
       r => r.status === 'pending' && (currentBranch === 'all' || r.branchId === currentBranch)
@@ -1290,8 +1583,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMenuItems(prev =>
       prev.map(m => {
         if (m.id === id) {
-          const updated = { ...m, available: !m.available };
-          showToast('Availability Changed', `${m.name} is now ${updated.available ? 'Available' : 'Unavailable'}`, 'info');
+          const nextAvail = !m.available;
+          const nextStatus: ItemStockStatus = nextAvail ? 'available' : 'sold_out';
+          const updated: MenuItem = {
+            ...m,
+            available: nextAvail,
+            stockStatus: nextStatus,
+            stockCount: nextAvail ? undefined : 0,
+          };
+          showToast(
+            nextAvail ? 'Item Restocked' : 'Item 86-ed (Sold Out)',
+            `${m.name} is now ${nextAvail ? 'AVAILABLE' : 'SOLD OUT (86)'}.`,
+            nextAvail ? 'success' : 'warning'
+          );
+          return updated;
+        }
+        return m;
+      })
+    );
+  };
+
+  const updateMenuItemStock = (id: string, stockStatus: ItemStockStatus, stockCount?: number) => {
+    setMenuItems(prev =>
+      prev.map(m => {
+        if (m.id === id) {
+          let count = stockCount;
+          let isAvail = true;
+          if (stockStatus === 'sold_out') {
+            count = 0;
+            isAvail = false;
+          } else if (stockStatus === 'few_left') {
+            count = typeof stockCount === 'number' ? Math.max(0, stockCount) : (m.stockCount ?? 5);
+            isAvail = count > 0;
+          } else {
+            // available
+            count = undefined;
+            isAvail = true;
+          }
+          const updated: MenuItem = {
+            ...m,
+            stockStatus,
+            stockCount: count,
+            available: isAvail,
+          };
+          showToast(
+            stockStatus === 'sold_out'
+              ? 'Item 86-ed (Sold Out)'
+              : stockStatus === 'few_left'
+              ? 'Stock Updated: Few Left'
+              : 'Item Available',
+            stockStatus === 'sold_out'
+              ? `${m.name} is now marked SOLD OUT (86) across POS & Waiters.`
+              : stockStatus === 'few_left'
+              ? `${m.name} set to Few Left: ${count} plates remaining.`
+              : `${m.name} is now Available.`,
+            stockStatus === 'sold_out' ? 'warning' : 'success'
+          );
           return updated;
         }
         return m;
@@ -1474,6 +1821,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updateCartItemNotes,
         updateCartItemServeType,
         removeFromCart,
+        setCartItems,
         clearCart,
         setCartOrderType,
         setCartTableNumber,
@@ -1493,6 +1841,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         pendingBillRequests,
         requestBill,
         cancelBillRequest,
+        settleBillRequest,
         selectTableForPOS,
         updateTableStatus,
         setTableStatusByNumber,
@@ -1505,6 +1854,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addMenuItem,
         updateMenuItem,
         toggleMenuItemAvailability,
+        updateMenuItemStock,
+        dispatchedItemStats,
+        isKitchenDrawerOpen,
+        setIsKitchenDrawerOpen,
+        kitchenDrawerTab,
+        setKitchenDrawerTab,
+        openKitchenDrawer,
         addCustomer,
         updateCustomer,
         showToast,

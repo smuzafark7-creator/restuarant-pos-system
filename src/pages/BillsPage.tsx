@@ -71,36 +71,36 @@ export const BillsPage: React.FC = () => {
   }, [filtered]);
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-2xs">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-w-7xl mx-auto font-sans text-slate-200">
+      {/* Top Banner (Dark Slate Surface) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0f172a] p-4 sm:p-5 rounded-xl border border-slate-800 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight font-mono">Bills & Invoices Ledger</h2>
+            <Receipt className="w-5 h-5 text-emerald-400" />
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">Bills & Invoices Ledger</h2>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Complete billing register, tax receipts archive, and settled customer accounts
           </p>
         </div>
 
-        <div className="flex items-center gap-3 font-mono">
+        <div className="flex items-center gap-3">
           <div className="text-right">
-            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold block">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
               Filtered Revenue
             </span>
-            <span className="text-lg font-bold text-slate-900">
+            <span className="text-lg font-bold text-emerald-400">
               ₹{totalAmount.toLocaleString('en-IN')}
             </span>
           </div>
-          <div className="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+          <div className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200">
             {filtered.length} Bills
           </div>
         </div>
       </div>
 
-      {/* Filter Bar with all required filters */}
-      <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-3 font-mono">
+      {/* Filter Bar with all required filters (Dark Slate Surface) */}
+      <div className="bg-[#0f172a] p-4 rounded-xl border border-slate-800 shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -109,7 +109,7 @@ export const BillsPage: React.FC = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search Invoice #, guest name, table..."
-              className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-emerald-500 font-mono"
+              className="w-full pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-slate-500 placeholder-slate-500"
             />
           </div>
 
@@ -118,70 +118,70 @@ export const BillsPage: React.FC = () => {
             <select
               value={selectedBranch}
               onChange={e => setSelectedBranch(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none"
+              className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
             >
-              <option value="all">All Branches</option>
-              <option value="main">Main Branch</option>
-              <option value="city">City Branch</option>
-              <option value="beach">Beach Road Branch</option>
+              <option value="all" className="bg-[#0f172a] text-slate-200">All Branches</option>
+              <option value="main" className="bg-[#0f172a] text-slate-200">Main Branch</option>
+              <option value="city" className="bg-[#0f172a] text-slate-200">City Branch</option>
+              <option value="beach" className="bg-[#0f172a] text-slate-200">Beach Road Branch</option>
             </select>
 
             {/* Date Filter */}
             <select
               value={dateFilter}
               onChange={e => setDateFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none"
+              className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
             >
-              <option value="All">All Dates</option>
-              <option value="Today">Today (07 Sep)</option>
-              <option value="Yesterday">Yesterday</option>
-              <option value="This Week">This Week</option>
-              <option value="This Month">This Month</option>
+              <option value="All" className="bg-[#0f172a] text-slate-200">All Dates</option>
+              <option value="Today" className="bg-[#0f172a] text-slate-200">Today (07 Sep)</option>
+              <option value="Yesterday" className="bg-[#0f172a] text-slate-200">Yesterday</option>
+              <option value="This Week" className="bg-[#0f172a] text-slate-200">This Week</option>
+              <option value="This Month" className="bg-[#0f172a] text-slate-200">This Month</option>
             </select>
 
             {/* Payment Method Filter */}
             <select
               value={paymentFilter}
               onChange={e => setPaymentFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none"
+              className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
             >
-              <option value="All">All Payments</option>
-              <option value="upi">UPI</option>
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
-              <option value="split">Split</option>
+              <option value="All" className="bg-[#0f172a] text-slate-200">All Payments</option>
+              <option value="upi" className="bg-[#0f172a] text-slate-200">UPI</option>
+              <option value="cash" className="bg-[#0f172a] text-slate-200">Cash</option>
+              <option value="card" className="bg-[#0f172a] text-slate-200">Card</option>
+              <option value="split" className="bg-[#0f172a] text-slate-200">Split</option>
             </select>
 
             {/* Order Type Filter */}
             <select
               value={orderTypeFilter}
               onChange={e => setOrderTypeFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none"
+              className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
             >
-              <option value="All">All Types</option>
-              <option value="dine_in">Dine-in</option>
-              <option value="takeaway">Takeaway</option>
-              <option value="parcel">Parcel</option>
+              <option value="All" className="bg-[#0f172a] text-slate-200">All Types</option>
+              <option value="dine_in" className="bg-[#0f172a] text-slate-200">Dine-in</option>
+              <option value="takeaway" className="bg-[#0f172a] text-slate-200">Takeaway</option>
+              <option value="parcel" className="bg-[#0f172a] text-slate-200">Parcel</option>
             </select>
 
             {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 focus:outline-none"
+              className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs font-medium text-slate-200 focus:outline-none focus:border-slate-500"
             >
-              <option value="All">All Status</option>
-              <option value="paid">PAID</option>
+              <option value="All" className="bg-[#0f172a] text-slate-200">All Status</option>
+              <option value="paid" className="bg-[#0f172a] text-slate-200">PAID</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Bills Table */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-2xs overflow-hidden font-mono">
+      {/* Bills Table Grid (Dark Slate Surface) */}
+      <div className="bg-[#0f172a] rounded-xl border border-slate-800 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+            <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="py-3 px-4">Invoice No</th>
                 <th className="py-3 px-4">Date</th>
@@ -195,48 +195,48 @@ export const BillsPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
+            <tbody className="divide-y divide-slate-800 text-slate-200">
               {filtered.map(bill => (
                 <tr 
                   key={bill.id} 
-                  className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                  className="bg-[#0f172a] hover:bg-slate-800/60 border-b border-slate-800 text-slate-200 transition-colors group cursor-pointer"
                   onClick={() => openBillDetailsModal(bill)}
                 >
-                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                  <td className="py-3.5 px-4 font-bold text-white">
                     {bill.billNumber}
                   </td>
-                  <td className="py-3.5 px-4 text-slate-600">
+                  <td className="py-3.5 px-4 text-slate-300">
                     <div>{bill.date}</div>
                     <div className="text-[10px] text-slate-400">{bill.time}</div>
                   </td>
-                  <td className="py-3.5 px-4 font-medium text-slate-700">
+                  <td className="py-3.5 px-4 font-medium text-slate-300">
                     {bill.branchName}
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className="capitalize px-2 py-0.5 rounded bg-slate-100 font-medium text-slate-700 text-[11px] border border-slate-200">
+                    <span className="capitalize px-2 py-0.5 rounded bg-slate-800/80 font-medium text-slate-300 text-[11px] border border-slate-700">
                       {bill.orderType.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 font-medium">
                     {bill.tableNumber ? (
-                      <span className="font-bold text-slate-900">{bill.tableNumber}</span>
+                      <span className="font-bold text-white">{bill.tableNumber}</span>
                     ) : (
-                      <span className="text-slate-600">{bill.customerName || 'Takeaway'}</span>
+                      <span className="text-slate-300">{bill.customerName || 'Takeaway'}</span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-slate-600">
+                  <td className="py-3.5 px-4 text-slate-400">
                     {bill.items.length} items
                   </td>
-                  <td className="py-3.5 px-4 text-right font-bold text-slate-900 text-sm">
+                  <td className="py-3.5 px-4 text-right font-bold text-emerald-400 text-sm">
                     ₹{bill.grandTotal.toLocaleString('en-IN')}
                   </td>
                   <td className="py-3.5 px-4">
-                    <span className="font-semibold uppercase text-[11px] text-slate-700">
+                    <span className="font-semibold uppercase text-[11px] text-slate-300">
                       {bill.paymentMethod}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-center">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
                       <CheckCircle2 className="w-3 h-3" />
                       PAID
                     </span>
@@ -245,7 +245,7 @@ export const BillsPage: React.FC = () => {
                     <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => openBillDetailsModal(bill)}
-                        className="px-2 py-1 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors border border-slate-200 text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                        className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                         title="View Full Bill Details"
                       >
                         <Eye className="w-3 h-3" />
@@ -253,7 +253,7 @@ export const BillsPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => openReceiptModal(bill)}
-                        className="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white transition-colors text-[11px] font-semibold flex items-center gap-1"
+                        className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                         title="Print Thermal Receipt"
                       >
                         <Printer className="w-3 h-3" />
@@ -268,7 +268,7 @@ export const BillsPage: React.FC = () => {
         </div>
 
         {filtered.length === 0 && (
-          <div className="p-12 text-center text-slate-400 text-xs">
+          <div className="p-12 text-center text-slate-400 text-xs bg-[#0f172a]">
             No bills match the selected filters or search query.
           </div>
         )}

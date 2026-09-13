@@ -108,10 +108,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
   const visibleItems = navItems.filter(item => item.allowedRoles.includes(userRole));
 
   const content = (
-    <aside className="w-56 bg-[#111827] text-slate-300 flex flex-col justify-between border-r border-slate-800 shrink-0 select-none h-full">
+    <aside className="w-56 bg-white text-slate-700 flex flex-col justify-between border-r border-slate-200 shrink-0 select-none h-full">
       {/* Navigation Links */}
       <div className="py-3 px-2.5 space-y-1">
-        <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 font-mono">
+        <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 font-mono">
           System Navigation
         </div>
         {visibleItems.map(item => {
@@ -125,19 +125,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
               }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all group ${
                 isActive
-                  ? 'bg-emerald-600 text-white font-semibold shadow-sm shadow-emerald-950/40'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  ? 'bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400'}>
+                <span className={isActive ? 'text-emerald-700' : 'text-slate-400 group-hover:text-emerald-700'}>
                   {item.icon}
                 </span>
                 <span>{item.label}</span>
               </div>
               {item.badge !== undefined && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
-                  isActive ? 'bg-emerald-800 text-emerald-100' : 'bg-slate-800 text-slate-300 border border-slate-700'
+                  isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600 border border-slate-200'
                 }`}>
                   {item.badge}
                 </span>
@@ -148,9 +148,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
       </div>
 
       {/* Role Notice Card */}
-      <div className="p-3 m-2.5 rounded-lg bg-slate-900/90 border border-slate-800 text-[11px]">
-        <div className="text-slate-400 font-medium">Logged Role:</div>
-        <div className="text-emerald-400 font-bold uppercase tracking-wider font-mono mt-0.5">
+      <div className="p-3 m-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
+        <div className="text-slate-500 font-medium">Logged Role:</div>
+        <div className="text-emerald-700 font-bold uppercase tracking-wider font-mono mt-0.5">
           {currentUser?.role}
         </div>
         <div className="text-[10px] text-slate-500 mt-1">

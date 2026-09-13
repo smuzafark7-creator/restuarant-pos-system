@@ -14,7 +14,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 
-interface OwnerSidebarProps {
+export interface OwnerSidebarProps {
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
   activeTabOverride?: string;
@@ -107,11 +107,11 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
   ];
 
   const sidebarContent = (
-    <aside className={`w-64 bg-[#0F172A] text-slate-300 flex flex-col justify-between border-r border-slate-800 flex-shrink-0 select-none h-full overflow-y-auto shadow-lg ${className || ''}`}>
+    <aside className={`w-64 bg-white text-slate-700 flex flex-col justify-between border-r border-slate-200 flex-shrink-0 select-none h-full overflow-y-auto shadow-xs font-sans ${className || ''}`}>
       <div className="py-4 px-3 space-y-1">
-        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 font-mono flex items-center justify-between">
+        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
           <span>Executive Console</span>
-          <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700">OWNER</span>
+          <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-semibold">OWNER</span>
         </div>
 
         {ownerNavItems.map(item => {
@@ -122,21 +122,21 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
               id={`owner-sidebar-${item.id}`}
               type="button"
               onClick={() => handleSelectTab(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all group cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all group cursor-pointer ${
                 isActive
-                  ? 'bg-emerald-600 text-white font-semibold shadow-md shadow-emerald-950/50'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/90'
+                  ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400 transition-colors'}>
+                <span className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-emerald-600 transition-colors'}>
                   {item.icon}
                 </span>
                 <span>{item.label}</span>
               </div>
               {item.badge !== undefined && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
-                  isActive ? 'bg-emerald-800 text-emerald-100' : 'bg-slate-800 text-slate-300 border border-slate-700'
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                  isActive ? 'bg-emerald-700 text-emerald-50' : 'bg-slate-100 text-slate-600 border border-slate-200'
                 }`}>
                   {item.badge}
                 </span>
@@ -147,12 +147,12 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
       </div>
 
       {/* Multi-Branch Status Footer */}
-      <div className="p-3 m-3 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] font-mono shrink-0">
-        <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-          <ShieldCheck className="w-3.5 h-3.5" />
+      <div className="p-3 m-3 rounded-xl bg-slate-50 border border-slate-200 text-[11px] shrink-0">
+        <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
           <span>Full Enterprise Access</span>
         </div>
-        <div className="text-[10px] text-slate-400 mt-1">
+        <div className="text-[10px] text-slate-500 mt-1">
           3 Branches Consolidated • Live Sync
         </div>
       </div>

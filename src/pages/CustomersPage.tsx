@@ -89,7 +89,7 @@ export const CustomersPage: React.FC = () => {
   const customerBills = useMemo(() => {
     if (!selectedCustomer) return [];
     return bills.filter(
-      b => b.customerMobile === selectedCustomer.mobile || (b.customerName && b.customerName.toLowerCase() === selectedCustomer.name.toLowerCase())
+      b => b.customerMobile === selectedCustomer.mobile || (b.customerName && selectedCustomer.name && b.customerName.toLowerCase() === selectedCustomer.name.toLowerCase())
     );
   }, [selectedCustomer, bills]);
 
