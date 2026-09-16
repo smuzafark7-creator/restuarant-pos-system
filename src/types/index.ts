@@ -9,6 +9,7 @@ export interface Branch {
   address: string;
   phone: string;
   gstin: string;
+  fssai?: string;
   color: string;
 }
 
@@ -22,7 +23,7 @@ export interface User {
   avatar?: string;
 }
 
-export type OrderType = 'dine_in' | 'takeaway' | 'parcel';
+export type OrderType = 'dine_in' | 'takeaway' | 'parcel' | 'delivery';
 
 export type TableStatus = 'available' | 'occupied' | 'waiting' | 'billing' | 'ready' | 'cleaning';
 
@@ -116,7 +117,7 @@ export interface CartItem {
   serveType?: ItemServeType;
 }
 
-export type KOTStatus = 'new' | 'preparing' | 'ready' | 'served' | 'cancelled';
+export type KOTStatus = 'new' | 'preparing' | 'ready' | 'picked_up' | 'served' | 'cancelled';
 
 export interface KOTItem {
   menuItemId: string;
@@ -153,6 +154,7 @@ export interface KOT {
   branchName: string;
   tableNumber?: string;
   tableId?: string;
+  takeawayId?: string; // e.g. "TK-102"
   orderType: OrderType;
   items: KOTItem[];
   status: KOTStatus;
@@ -160,6 +162,8 @@ export interface KOT {
   timeFormatted: string;
   startedAt?: string;
   readyAt?: string;
+  pickedUpAt?: string;
+  servedAt?: string;
   specialInstructions?: string;
   customerName?: string;
   customerMobile?: string;
@@ -168,6 +172,8 @@ export interface KOT {
   billId?: string;
   billedAt?: string;
   hasVoidedItems?: boolean;
+  serverName?: string;
+  waiterName?: string;
 }
 
 export type BillStatus = 'unpaid' | 'paid' | 'cancelled';
@@ -201,6 +207,7 @@ export interface Bill {
   time: string;
   tableNumber?: string;
   tableId?: string;
+  takeawayId?: string; // e.g. "TK-102"
   orderType: OrderType;
   customerName?: string;
   customerMobile?: string;
@@ -215,6 +222,11 @@ export interface Bill {
   splitDetails?: SplitPaymentDetail;
   status: BillStatus;
   cashierName?: string;
+  stewardName?: string;
+  fssaiLicNo?: string;
+  cancelledBy?: string;
+  cancelReason?: string;
+  voidedAt?: string;
 }
 
 export interface Customer {

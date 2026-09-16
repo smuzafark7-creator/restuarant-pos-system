@@ -9,6 +9,7 @@ import {
   KOTItem,
   Bill, 
   BillItem,
+  BillStatus,
   Customer, 
   CartItem, 
   OrderType, 
@@ -52,6 +53,9 @@ interface AppContextType {
   cart: CartItem[];
   cartOrderType: OrderType;
   cartTableNumber: string;
+  cartTakeawayId: string;
+  setCartTakeawayId: (id: string) => void;
+  takeawaySequence: number;
   cartCustomerName: string;
   cartCustomerMobile: string;
   cartSpecialNotes: string;
@@ -65,6 +69,10 @@ interface AppContextType {
   // Modals & previews
   activeReceiptBill: Bill | null;
   isReceiptModalOpen: boolean;
+  activeReceiptKOT: KOT | null;
+  isKOTModalOpen: boolean;
+  openKOTModal: (kot: KOT) => void;
+  closeKOTModal: () => void;
   activeDetailsBill: Bill | null;
   isBillDetailsModalOpen: boolean;
   openBillDetailsModal: (bill: Bill) => void;
@@ -75,6 +83,7 @@ interface AppContextType {
   // Actions
   login: (emailOrUsername: string, password?: string) => { success: boolean; error?: string };
   logout: () => void;
+  switchRole: (role: UserRole) => void;
   setBranch: (branchId: BranchId) => void;
   setActiveTab: (tab: string) => void;
   
@@ -94,6 +103,8 @@ interface AppContextType {
   setCartCustomerName: (name: string) => void;
   setCartCustomerMobile: (mobile: string) => void;
   setCartSpecialNotes: (notes: string) => void;
+  startNewTakeawayOrder: () => void;
+  selectTakeawayOrder: (takeawayId: string) => void;
   holdOrder: () => void;
   
   // Flow actions
@@ -102,8 +113,9 @@ interface AppContextType {
   voidKOTItem: (kotId: string, itemIndex: number, voidQty?: number, reason?: string) => boolean;
   kdsAlerts: KDSAlert[];
   dismissKDSAlert: (alertId: string) => void;
-  getActiveUnbilledKots: (tableNumber?: string, orderType?: OrderType, customerMobile?: string) => KOT[];
+  getActiveUnbilledKots: (tableNumber?: string, orderType?: OrderType, customerMobile?: string, takeawayId?: string) => KOT[];
   generateBill: (paymentMethod: PaymentMethod, splitDetails?: SplitPaymentDetail, discountAmount?: number) => Bill | null;
+  voidBill: (billId: string, reason: string) => boolean;
   openReceiptModal: (bill: Bill) => void;
   closeReceiptModal: () => void;
   
@@ -129,11 +141,15 @@ interface AppContextType {
   toggleMenuItemAvailability: (id: string) => void;
   updateMenuItemStock: (id: string, stockStatus: ItemStockStatus, stockCount?: number) => void;
   dispatchedItemStats: DispatchedItemStats[];
+  activeKitchenTab: 'live' | 'stock86' | 'dispatched' | 'history';
+  setActiveKitchenTab: (tab: 'live' | 'stock86' | 'dispatched' | 'history') => void;
   isKitchenDrawerOpen: boolean;
   setIsKitchenDrawerOpen: (open: boolean) => void;
   kitchenDrawerTab: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings';
   setKitchenDrawerTab: (tab: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => void;
   openKitchenDrawer: (tab?: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => void;
+  kdsViewMode: 'columns' | 'grid';
+  setKdsViewMode: (mode: 'columns' | 'grid') => void;
   addCustomer: (customer: Omit<Customer, 'id' | 'totalOrders' | 'totalSpent' | 'lastVisit'>) => void;
   updateCustomer: (customer: Customer) => void;
   
@@ -240,16 +256,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return INITIAL_MENU_ITEMS;
   });
 
-  // Kitchen Drawer & Tools state
+  // Kitchen Full-Page Routing & Tools state
+  const [activeKitchenTab, setActiveKitchenTab] = useState<'live' | 'stock86' | 'dispatched' | 'history'>('live');
   const [isKitchenDrawerOpen, setIsKitchenDrawerOpen] = useState<boolean>(false);
   const [kitchenDrawerTab, setKitchenDrawerTab] = useState<'active' | 'completed' | 'stock86' | 'dispatched' | 'settings'>('active');
 
   const openKitchenDrawer = (tab?: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => {
-    if (tab) {
-      setKitchenDrawerTab(tab);
+    if (tab === 'stock86') {
+      setActiveKitchenTab('stock86');
+    } else if (tab === 'dispatched') {
+      setActiveKitchenTab('dispatched');
+    } else if (tab === 'completed') {
+      setActiveKitchenTab('history');
+    } else {
+      setActiveKitchenTab('live');
     }
-    setIsKitchenDrawerOpen(true);
+    setIsKitchenDrawerOpen(false);
   };
+
+  // KDS View Mode ('columns' | 'grid')
+  const [kdsViewMode, setKdsViewMode] = useState<'columns' | 'grid'>('columns');
 
   // Live Shift/Session Dispatched Tracking (Real-time item-level counter with Dine-in vs Takeaway Breakdown)
   const [dispatchedDishes, setDispatchedDishes] = useState<Record<string, { dineIn: number; takeaway: number }>>(() => {
@@ -281,16 +307,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [menuItems]);
 
   const [tables, setTables] = useState<RestaurantTable[]>(() => {
-    if (storedData?.tables && storedData.tables.length > 0) return storedData.tables;
-    return [
+    const rawTables = (storedData?.tables && storedData.tables.length > 0) ? storedData.tables : [
       ...generateInitialTables('main'),
       ...generateInitialTables('city'),
       ...generateInitialTables('beach'),
     ];
+    // Table physical status should strictly only be 'available', 'occupied', or 'billing'
+    return rawTables.map((t: RestaurantTable) => {
+      let status = t.status;
+      if (status === 'ready' || status === 'waiting') {
+        status = 'occupied';
+      }
+      return { ...t, status };
+    });
   });
 
   const [kots, setKots] = useState<KOT[]>(() => {
-    const list: KOT[] = storedData?.kots ?? INITIAL_KOTS;
+    let list: KOT[] = storedData?.kots ?? INITIAL_KOTS;
     if (list.length < 15) {
       return INITIAL_KOTS;
     }
@@ -298,7 +331,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const hasKot10026 = list.some(k => k.kotNumber === 'KOT-10026');
     if (!hasKot10025 || !hasKot10026) {
       const demoKots = INITIAL_KOTS.filter(k => k.kotNumber === 'KOT-10025' || k.kotNumber === 'KOT-10026');
-      return [...demoKots, ...list];
+      list = [...demoKots, ...list];
+    }
+    const hasKot10111 = list.some(k => k.kotNumber === 'KOT-10111');
+    if (!hasKot10111) {
+      const demoKot = INITIAL_KOTS.find(k => k.kotNumber === 'KOT-10111');
+      if (demoKot) list = [demoKot, ...list];
+    }
+    const hasKot10034 = list.some(k => k.kotNumber === 'KOT-10034');
+    if (!hasKot10034) {
+      const demoKot = INITIAL_KOTS.find(k => k.kotNumber === 'KOT-10034');
+      if (demoKot) list = [demoKot, ...list];
     }
     return list;
   });
@@ -319,6 +362,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOrderType, setCartOrderType] = useState<OrderType>('dine_in');
   const [cartTableNumber, setCartTableNumber] = useState<string>('Table 5');
+  const [takeawaySequence, setTakeawaySequence] = useState<number>(() => {
+    const stored = storedData?.takeawaySequence;
+    return typeof stored === 'number' && stored >= 102 ? stored : 102;
+  });
+  const [cartTakeawayId, setCartTakeawayId] = useState<string>(() => {
+    return storedData?.cartTakeawayId ?? 'TK-102';
+  });
   const [cartCustomerName, setCartCustomerName] = useState<string>('');
   const [cartCustomerMobile, setCartCustomerMobile] = useState<string>('');
   const [cartSpecialNotes, setCartSpecialNotes] = useState<string>('');
@@ -330,6 +380,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Modals & Toasts
   const [activeReceiptBill, setActiveReceiptBill] = useState<Bill | null>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState<boolean>(false);
+  const [activeReceiptKOT, setActiveReceiptKOT] = useState<KOT | null>(null);
+  const [isKOTModalOpen, setIsKOTModalOpen] = useState<boolean>(false);
   const [activeDetailsBill, setActiveDetailsBill] = useState<Bill | null>(null);
   const [isBillDetailsModalOpen, setIsBillDetailsModalOpen] = useState<boolean>(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -368,13 +420,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         billSequence,
         cartPaidBill,
         cartSentKotId,
+        takeawaySequence,
+        cartTakeawayId,
         billRequests
       };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToPersist));
     } catch {
       // Ignored
     }
-  }, [currentUser, currentBranch, activeTab, menuItems, tables, kots, bills, customers, kotSequence, billSequence, cartPaidBill, cartSentKotId, billRequests]);
+  }, [currentUser, currentBranch, activeTab, menuItems, tables, kots, bills, customers, kotSequence, billSequence, cartPaidBill, cartSentKotId, takeawaySequence, cartTakeawayId, billRequests]);
 
   // Toast Helper
   const showToast = (title: string, message: string, type: ToastMessage['type'] = 'success') => {
@@ -445,11 +499,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // 3. Initial Routing after login:
     // OWNER: Login -> Dashboard
     // CASHIER: Login -> POS
+    // MANAGER: Login -> POS (Branch 1 / Main Branch)
     // KITCHEN: Login -> Kitchen KDS
     // WAITER: Login -> Tables
     if (matchedUser.role === 'owner') {
       setActiveTab('dashboard');
       setCurrentBranch('all');
+    } else if (matchedUser.role === 'manager') {
+      setActiveTab('pos');
+      setCurrentBranch('main');
     } else if (matchedUser.role === 'cashier') {
       setActiveTab('pos');
       setCurrentBranch('main');
@@ -466,6 +524,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     showToast('Welcome back', `Logged in as ${matchedUser.name}`);
     return { success: true };
+  };
+
+  const switchRole = (role: UserRole) => {
+    const target = DEMO_USERS.find(u => u.role === role);
+    if (!target) return;
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(target));
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        parsed.currentUser = target;
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
+      }
+    } catch (e) {
+      console.error('Error saving role switch to localStorage:', e);
+    }
+
+    setCurrentUser(target);
+    if (target.role === 'owner') {
+      setActiveTab('dashboard');
+      setCurrentBranch('all');
+    } else if (target.role === 'manager') {
+      setActiveTab('pos');
+      setCurrentBranch('main');
+    } else if (target.role === 'cashier') {
+      setActiveTab('pos');
+      setCurrentBranch('main');
+    } else if (target.role === 'kitchen') {
+      setActiveTab('kitchen');
+      setCurrentBranch('main');
+    } else if (target.role === 'waiter') {
+      setActiveTab('tables');
+      setCurrentBranch('main');
+    }
+    showToast('Role Switched', `Active User: ${target.name} (${target.role.toUpperCase()})`, 'info');
   };
 
   const logout = () => {
@@ -651,6 +744,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCartCustomDiscount(0);
   };
 
+  const startNewTakeawayOrder = useCallback(() => {
+    const nextSeq = takeawaySequence + 1;
+    const nextId = `TK-${nextSeq}`;
+    setTakeawaySequence(nextSeq);
+    setCartTakeawayId(nextId);
+    setCart([]);
+    setCartCustomerName('');
+    setCartCustomerMobile('');
+    setCartSpecialNotes('');
+    setCartPaidBill(null);
+    setCartSentKotId(null);
+    setCartDiscountPercent(0);
+    setCartCustomDiscount(0);
+    showToast('New Takeaway Order', `Active ticket set to #${nextId}`);
+  }, [takeawaySequence]);
+
+  const selectTakeawayOrder = useCallback((takeawayId: string) => {
+    setCartTakeawayId(takeawayId);
+    setCartOrderType('takeaway');
+    // Find unbilled KOT for this takeaway to populate customer info if exists
+    const existingKot = kots.find(
+      k =>
+        (k.takeawayId === takeawayId || (k.kotNumber && `TK-${k.kotNumber.replace(/\D/g, '').slice(-3)}` === takeawayId)) &&
+        !k.isBilled &&
+        k.status !== 'cancelled'
+    );
+    if (existingKot) {
+      if (existingKot.customerName) setCartCustomerName(existingKot.customerName);
+      if (existingKot.customerMobile) setCartCustomerMobile(existingKot.customerMobile);
+    }
+  }, [kots]);
+
   const holdOrder = () => {
     if (cartPaidBill) {
       showToast('Order is Paid', 'A paid order cannot be held. Send KOT or view receipt.', 'warning');
@@ -694,7 +819,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const totalAmount = cart.reduce((sum, c) => sum + c.item.price * c.quantity, 0);
     const isPrepaid = !!cartPaidBill;
+    const isTakeawayOrder = cartOrderType !== 'dine_in' && !overrideTableNumber;
     const effectiveTableNumber = overrideTableNumber || (cartOrderType === 'dine_in' ? cartTableNumber : undefined);
+    const effectiveTakeawayId = isTakeawayOrder ? (cartTakeawayId || `TK-${takeawaySequence}`) : undefined;
+    if (isTakeawayOrder && !cartTakeawayId && effectiveTakeawayId) {
+      setCartTakeawayId(effectiveTakeawayId);
+    }
 
     const newKOT: KOT = {
       id: 'kot_' + Date.now(),
@@ -702,6 +832,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       branchId: branchObj.id,
       branchName: branchObj.name,
       tableNumber: effectiveTableNumber,
+      takeawayId: effectiveTakeawayId,
       orderType: overrideTableNumber ? 'dine_in' : cartOrderType,
       items: cart.map(c => ({
         menuItemId: c.item.id,
@@ -710,7 +841,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         rate: c.item.price,
         isVeg: c.item.isVeg,
         notes: c.notes,
-        serveType: c.serveType || 'DINE_IN'
+        serveType: c.serveType || (cartOrderType === 'dine_in' ? 'DINE_IN' : 'PARCEL')
       })),
       status: 'new',
       createdAt: now.toISOString(),
@@ -721,7 +852,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalAmount,
       isBilled: isPrepaid,
       billId: cartPaidBill?.id,
-      billedAt: isPrepaid ? now.toISOString() : undefined
+      billedAt: isPrepaid ? now.toISOString() : undefined,
+      serverName: currentUser?.name || 'Staff'
     };
 
     // Update KOT list
@@ -817,6 +949,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           if (status === 'ready' && !k.readyAt) {
             updated.readyAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           }
+          if (status === 'picked_up' && !k.pickedUpAt) {
+            updated.pickedUpAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+          if (status === 'served' && !k.servedAt) {
+            updated.servedAt = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
           return updated;
         }
         return k;
@@ -826,7 +964,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetKot = kots.find(k => k.id === kotId);
     if (targetKot) {
       // Live Shift/Session Dispatched Tracking (Dine-in vs Takeaway Breakdown)
-      if (status === 'ready' || status === 'served') {
+      if (status === 'ready' || status === 'picked_up' || status === 'served') {
         if (!dispatchedKotIds.has(kotId)) {
           setDispatchedKotIds(prev => new Set(prev).add(kotId));
           const isTakeaway = targetKot.orderType === 'takeaway' || targetKot.orderType === 'parcel';
@@ -848,20 +986,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       if (status === 'ready') {
         showToast('KOT Ready!', `${targetKot.kotNumber} for ${targetKot.tableNumber || 'Takeaway'} is ready for pickup!`);
-        // If table exists, mark as ready (unless already billing)
-        if (targetKot.tableNumber) {
-          setTables(prev =>
-            prev.map(tbl =>
-              tbl.branchId === targetKot.branchId && tbl.name.toLowerCase() === targetKot.tableNumber?.toLowerCase()
-                ? { ...tbl, status: tbl.status === 'billing' ? 'billing' : 'ready' }
-                : tbl
-            )
-          );
-        }
+        // Table physical status strictly remains 'occupied' (or 'billing'); do not replace with 'ready'
+      } else if (status === 'picked_up') {
+        showToast('Food Picked Up', `${targetKot.kotNumber} picked up — en route to ${targetKot.tableNumber || 'Takeaway'}!`, 'info');
       } else if (status === 'preparing') {
         showToast('Kitchen Cooking', `Kitchen started preparing ${targetKot.kotNumber}`);
       } else if (status === 'served') {
-        showToast('Order Served', `${targetKot.kotNumber} marked as served to guests.`);
+        showToast('Order Served', `${targetKot.kotNumber} marked as served to guests.`, 'success');
         if (targetKot.tableNumber) {
           setTables(prev =>
             prev.map(tbl =>
@@ -1026,12 +1157,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const getActiveUnbilledKots = useCallback((
     tableNumber?: string,
     orderType?: OrderType,
-    customerMobile?: string
+    customerMobile?: string,
+    takeawayId?: string
   ): KOT[] => {
     const effectiveBranch = currentBranch === 'all' ? 'main' : currentBranch;
     const targetType = orderType || cartOrderType;
     const targetTable = tableNumber || (targetType === 'dine_in' ? cartTableNumber : undefined);
     const targetMobile = customerMobile || cartCustomerMobile;
+    const targetTakeawayId = takeawayId || (targetType !== 'dine_in' ? cartTakeawayId : undefined);
 
     if (targetType === 'dine_in') {
       if (!targetTable) return [];
@@ -1043,16 +1176,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
              k.status !== 'cancelled'
       );
     } else {
-      // Takeaway or parcel
+      // Takeaway, delivery, or parcel
       return kots.filter(
-        k => k.branchId === effectiveBranch &&
-             k.orderType === targetType &&
-             !k.isBilled &&
-             k.status !== 'cancelled' &&
-             (!targetMobile || k.customerMobile === targetMobile)
+        k => {
+          if (k.branchId !== effectiveBranch) return false;
+          if (k.isBilled || k.status === 'cancelled') return false;
+          const isTakeawayType = k.orderType === 'takeaway' || k.orderType === 'parcel' || k.orderType === 'delivery';
+          if (!isTakeawayType) return false;
+
+          const kotTakeawayId = k.takeawayId || (k.kotNumber ? `TK-${k.kotNumber.replace(/\D/g, '').slice(-3)}` : undefined);
+          if (targetTakeawayId && kotTakeawayId) {
+            return kotTakeawayId.toLowerCase() === targetTakeawayId.toLowerCase();
+          }
+          if (targetMobile && k.customerMobile) {
+            return k.customerMobile === targetMobile;
+          }
+          if (targetTakeawayId && !kotTakeawayId && !k.customerMobile) {
+            return true;
+          }
+          return false;
+        }
       );
     }
-  }, [currentBranch, cartOrderType, cartTableNumber, cartCustomerMobile, kots]);
+  }, [currentBranch, cartOrderType, cartTableNumber, cartCustomerMobile, cartTakeawayId, kots]);
 
   // Generate Bill & Payment Recording
   const generateBill = (
@@ -1075,8 +1221,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const effectiveBranch = currentBranch === 'all' ? 'main' : currentBranch;
     const branchObj = BRANCHES.find(b => b.id === effectiveBranch) || BRANCHES[0];
 
-    // 1. Retrieve all active unbilled KOTs for this dining session / table
-    const activeKots = getActiveUnbilledKots(cartTableNumber, cartOrderType, cartCustomerMobile);
+    // 1. Retrieve all active unbilled KOTs for this dining session / table / takeaway ticket
+    const activeKots = getActiveUnbilledKots(cartTableNumber, cartOrderType, cartCustomerMobile, cartTakeawayId);
 
     const billItems: BillItem[] = [];
 
@@ -1152,6 +1298,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const effectiveCustomerName = cartCustomerName || activeKots.find(k => k.customerName)?.customerName || 'Walk-in Guest';
     const effectiveCustomerMobile = cartCustomerMobile || activeKots.find(k => k.customerMobile)?.customerMobile || undefined;
 
+    // Infer steward/waiter name from active KOTs or table
+    const effectiveStewardName = activeKots.find(k => k.serverName || k.waiterName)?.serverName 
+      || activeKots.find(k => k.serverName || k.waiterName)?.waiterName 
+      || 'Ramesh Patel';
+
     const newBill: Bill = {
       id: 'bill_' + Date.now(),
       billNumber: billNumberStr,
@@ -1162,6 +1313,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       date,
       time,
       tableNumber: cartOrderType === 'dine_in' ? cartTableNumber : undefined,
+      takeawayId: cartOrderType !== 'dine_in' ? (cartTakeawayId || activeKots.find(k => k.takeawayId)?.takeawayId) : undefined,
       orderType: cartOrderType,
       customerName: effectiveCustomerName,
       customerMobile: effectiveCustomerMobile,
@@ -1174,7 +1326,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       paymentMethod,
       splitDetails: paymentMethod === 'split' ? splitDetails : undefined,
       status: paymentMethod === 'due' ? 'unpaid' : 'paid',
-      cashierName: currentUser?.name || 'Cashier'
+      cashierName: currentUser?.name || 'Anita',
+      stewardName: effectiveStewardName,
+      fssaiLicNo: branchObj.fssai || '11223334000128'
     };
 
     // Prepend to bills history
@@ -1276,7 +1430,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // Pre-paid takeaway/parcel workflow:
     // If takeaway or parcel and no KOT was sent prior to billing, keep order available as PAID - READY TO SEND.
-    const isTakeawayOrParcel = cartOrderType === 'takeaway' || cartOrderType === 'parcel';
+    const isTakeawayOrParcel = cartOrderType === 'takeaway' || cartOrderType === 'parcel' || cartOrderType === 'delivery';
     const isPrepaidOrder = isTakeawayOrParcel && activeKots.length === 0;
 
     if (isPrepaidOrder) {
@@ -1286,6 +1440,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clearCart();
       setCartPaidBill(null);
       setCartSentKotId(null);
+      if (isTakeawayOrParcel) {
+        // Advance to next fresh takeaway ticket for subsequent orders
+        const nextSeq = takeawaySequence + 1;
+        setTakeawaySequence(nextSeq);
+        setCartTakeawayId(`TK-${nextSeq}`);
+        setCartCustomerName('');
+        setCartCustomerMobile('');
+      }
     }
 
     // Show thermal receipt modal automatically for confirmation
@@ -1296,13 +1458,81 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newBill;
   };
 
+  const voidBill = (billId: string, reason: string): boolean => {
+    const targetBill = bills.find(b => b.id === billId || b.billNumber === billId);
+    if (!targetBill) {
+      showToast('Error', 'Bill not found.', 'error');
+      return false;
+    }
+
+    const cancelReason = reason || 'Manager Void / Cancellation';
+    const cancelledByName = currentUser?.name || 'Vikram Sharma (Manager)';
+    const voidTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+    setBills(prev => prev.map(b => {
+      if (b.id === targetBill.id) {
+        return {
+          ...b,
+          status: 'cancelled' as BillStatus,
+          cancelledBy: cancelledByName,
+          cancelReason: cancelReason,
+          voidedAt: voidTime
+        };
+      }
+      return b;
+    }));
+
+    if (activeDetailsBill && (activeDetailsBill.id === targetBill.id || activeDetailsBill.billNumber === targetBill.billNumber)) {
+      setActiveDetailsBill(prev => prev ? {
+        ...prev,
+        status: 'cancelled' as BillStatus,
+        cancelledBy: cancelledByName,
+        cancelReason: cancelReason,
+        voidedAt: voidTime
+      } : null);
+    }
+
+    // Add alert to KDS & notification bell for void tracking
+    const newAlert: KDSAlert = {
+      id: `alert_void_${Date.now()}`,
+      kotId: targetBill.kotNumber || targetBill.billNumber,
+      kotNumber: targetBill.billNumber,
+      tableNumber: targetBill.tableNumber,
+      itemName: `VOID INVOICE #${targetBill.billNumber}`,
+      quantity: targetBill.items?.length || 1,
+      voidedBy: cancelledByName,
+      time: voidTime,
+      reason: cancelReason,
+      dismissed: false
+    };
+    setKdsAlerts(prev => [newAlert, ...prev]);
+
+    showToast('Bill Voided', `Invoice #${targetBill.billNumber} cancelled: ${cancelReason}`, 'warning');
+    return true;
+  };
+
   const openReceiptModal = (bill: Bill) => {
+    setIsKOTModalOpen(false);
+    setActiveReceiptKOT(null);
     setActiveReceiptBill(bill);
     setIsReceiptModalOpen(true);
   };
 
   const closeReceiptModal = () => {
     setIsReceiptModalOpen(false);
+    setActiveReceiptBill(null);
+  };
+
+  const openKOTModal = (kot: KOT) => {
+    setIsReceiptModalOpen(false);
+    setActiveReceiptBill(null);
+    setActiveReceiptKOT(kot);
+    setIsKOTModalOpen(true);
+  };
+
+  const closeKOTModal = () => {
+    setIsKOTModalOpen(false);
+    setActiveReceiptKOT(null);
   };
 
   const openBillDetailsModal = (bill: Bill) => {
@@ -1793,6 +2023,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         cart,
         cartOrderType,
         cartTableNumber,
+        cartTakeawayId,
+        setCartTakeawayId,
+        takeawaySequence,
+        startNewTakeawayOrder,
+        selectTakeawayOrder,
         cartCustomerName,
         cartCustomerMobile,
         cartSpecialNotes,
@@ -1807,6 +2042,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         resetCartOrder,
         activeReceiptBill,
         isReceiptModalOpen,
+        activeReceiptKOT,
+        isKOTModalOpen,
+        openKOTModal,
+        closeKOTModal,
         activeDetailsBill,
         isBillDetailsModalOpen,
         openBillDetailsModal,
@@ -1814,6 +2053,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toasts,
         login,
         logout,
+        switchRole,
         setBranch,
         setActiveTab: handleSetActiveTab,
         addToCart,
@@ -1835,6 +2075,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         kdsAlerts,
         dismissKDSAlert,
         generateBill,
+        voidBill,
         openReceiptModal,
         closeReceiptModal,
         billRequests,
@@ -1856,11 +2097,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleMenuItemAvailability,
         updateMenuItemStock,
         dispatchedItemStats,
+        activeKitchenTab,
+        setActiveKitchenTab,
         isKitchenDrawerOpen,
         setIsKitchenDrawerOpen,
         kitchenDrawerTab,
         setKitchenDrawerTab,
         openKitchenDrawer,
+        kdsViewMode,
+        setKdsViewMode,
         addCustomer,
         updateCustomer,
         showToast,

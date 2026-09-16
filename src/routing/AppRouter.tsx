@@ -12,6 +12,7 @@ import {
   MenuManagementPage,
   ReportsPage,
   SettingsPage,
+  ZReportPage,
 } from '../pages';
 
 export const AppRouter: React.FC = () => {
@@ -59,6 +60,8 @@ export const AppRouter: React.FC = () => {
       return <ReportsPage />;
     case 'settings':
       return <SettingsPage />;
+    case 'zreport':
+      return <ZReportPage />;
     default:
       return <DashboardPage />;
   }

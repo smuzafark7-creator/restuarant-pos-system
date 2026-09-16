@@ -53,7 +53,7 @@ export const WaiterNav: React.FC<WaiterNavProps> = ({ activeTabOverride, onNavig
     setIsCallKitchenModalOpen(false);
   };
 
-  const pendingKotsCount = kots.filter(k => k.status === 'new' || k.status === 'preparing').length;
+  const pendingKotsCount = kots.filter(k => k.status === 'new' || k.status === 'preparing' || k.status === 'ready' || k.status === 'picked_up').length;
 
   return (
     <>

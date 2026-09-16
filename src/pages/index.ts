@@ -9,3 +9,4 @@ export * from './POSPage';
 export * from './ReportsPage';
 export * from './SettingsPage';
 export * from './TablesPage';
+export * from './ZReportPage';

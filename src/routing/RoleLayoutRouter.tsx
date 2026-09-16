@@ -5,7 +5,8 @@ import {
   OwnerLayout, 
   WaiterLayout, 
   KitchenLayout, 
-  CashierLayout 
+  CashierLayout,
+  ManagerLayout
 } from '../layouts';
 import {
   DashboardPage,
@@ -18,6 +19,7 @@ import {
   MenuManagementPage,
   ReportsPage,
   SettingsPage,
+  ZReportPage,
 } from '../pages';
 import { WaiterPOSView } from '../components/waiter/WaiterPOSView';
 import { CashierPOSView } from '../components/cashier/CashierPOSView';
@@ -66,35 +68,30 @@ const ROLE_ROUTING: Record<UserRole, RolePathConfig> = {
     },
   },
   manager: {
-    basePrefix: '/owner',
-    defaultTab: 'dashboard',
-    defaultPath: '/owner/dashboard',
-    allowedTabs: ['dashboard', 'tables', 'pos', 'kot', 'kitchen', 'bills', 'customers', 'menu', 'reports', 'settings'],
+    basePrefix: '/manager',
+    defaultTab: 'pos',
+    defaultPath: '/manager/pos',
+    allowedTabs: ['pos', 'tables', 'bills', 'kot', 'zreport', 'reports', 'settings'],
     tabToPath: {
-      dashboard: '/owner/dashboard',
-      tables: '/owner/tables',
-      pos: '/owner/pos',
-      kot: '/owner/kot',
-      kitchen: '/owner/kitchen',
-      bills: '/owner/bills',
-      customers: '/owner/customers',
-      menu: '/owner/menu',
-      reports: '/owner/reports',
-      settings: '/owner/settings',
+      pos: '/manager/pos',
+      tables: '/manager/tables',
+      bills: '/manager/bills',
+      kot: '/manager/kot',
+      zreport: '/manager/zreport',
+      reports: '/manager/reports',
+      settings: '/manager/settings',
     },
     pathToTab: {
-      '/owner': 'dashboard',
-      '/owner/': 'dashboard',
-      '/owner/dashboard': 'dashboard',
-      '/owner/tables': 'tables',
-      '/owner/pos': 'pos',
-      '/owner/kot': 'kot',
-      '/owner/kitchen': 'kitchen',
-      '/owner/bills': 'bills',
-      '/owner/customers': 'customers',
-      '/owner/menu': 'menu',
-      '/owner/reports': 'reports',
-      '/owner/settings': 'settings',
+      '/manager': 'pos',
+      '/manager/': 'pos',
+      '/manager/pos': 'pos',
+      '/manager/billing': 'pos',
+      '/manager/tables': 'tables',
+      '/manager/bills': 'bills',
+      '/manager/kot': 'kot',
+      '/manager/zreport': 'zreport',
+      '/manager/reports': 'reports',
+      '/manager/settings': 'settings',
     },
   },
   waiter: {
@@ -135,11 +132,13 @@ const ROLE_ROUTING: Record<UserRole, RolePathConfig> = {
     basePrefix: '/pos',
     defaultTab: 'pos',
     defaultPath: '/pos/billing',
-    allowedTabs: ['pos', 'tables', 'bills'],
+    allowedTabs: ['pos', 'tables', 'bills', 'kot', 'zreport'],
     tabToPath: {
       pos: '/pos/billing',
       tables: '/pos/tables',
       bills: '/pos/bills',
+      kot: '/pos/kot',
+      zreport: '/pos/zreport',
     },
     pathToTab: {
       '/pos': 'pos',
@@ -148,11 +147,15 @@ const ROLE_ROUTING: Record<UserRole, RolePathConfig> = {
       '/pos/pos': 'pos',
       '/pos/tables': 'tables',
       '/pos/bills': 'bills',
+      '/pos/kot': 'kot',
+      '/pos/zreport': 'zreport',
       '/cashier': 'pos',
       '/cashier/': 'pos',
       '/cashier/billing': 'pos',
       '/cashier/tables': 'tables',
       '/cashier/bills': 'bills',
+      '/cashier/kot': 'kot',
+      '/cashier/zreport': 'zreport',
     },
   },
 };
@@ -272,7 +275,7 @@ export const RoleLayoutRouter: React.FC = () => {
         if (currentUser.role === 'waiter') {
           return <WaiterPOSView />;
         }
-        if (currentUser.role === 'cashier') {
+        if (currentUser.role === 'cashier' || currentUser.role === 'manager') {
           return <CashierPOSView />;
         }
         return <POSPage />;
@@ -290,18 +293,29 @@ export const RoleLayoutRouter: React.FC = () => {
         return <ReportsPage />;
       case 'settings':
         return <SettingsPage />;
+      case 'zreport':
+        return <ZReportPage />;
       default:
         return <DashboardPage />;
     }
   };
 
   // Render the strictly role-isolated layout wrapper:
-  // 1. OWNER / MANAGER: <OwnerLayout> (Header + fixed Sidebar + content)
-  if (currentUser.role === 'owner' || currentUser.role === 'manager') {
+  // 1. OWNER: <OwnerLayout> (Header + fixed Sidebar + content)
+  if (currentUser.role === 'owner') {
     return (
       <OwnerLayout activeTabOverride={currentTab} onNavigate={handleNavigate}>
         {renderPageComponent()}
       </OwnerLayout>
+    );
+  }
+
+  // 2. MANAGER: <ManagerLayout> (Manager Console Header + Horizontal Navigation Tabs + Terminal Workspace)
+  if (currentUser.role === 'manager') {
+    return (
+      <ManagerLayout activeTabOverride={currentTab} onNavigate={handleNavigate}>
+        {renderPageComponent()}
+      </ManagerLayout>
     );
   }
 

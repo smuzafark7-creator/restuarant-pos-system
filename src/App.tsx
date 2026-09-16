@@ -46,7 +46,11 @@ const AppContent: React.FC = () => {
   }
 
   // Authenticated user -> render via role-isolated Layout Router
-  return <RoleLayoutRouter />;
+  return (
+    <div className="overflow-x-hidden w-full max-w-[100vw] h-full flex flex-col">
+      <RoleLayoutRouter />
+    </div>
+  );
 };
 
 export default function App() {

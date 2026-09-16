@@ -13,13 +13,17 @@ import {
   Utensils,
   Plus,
   Minus,
+  History,
+  BarChart3,
+  RotateCcw,
+  Clock
 } from 'lucide-react';
 
 interface KitchenDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   activeDrawerTab: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings';
-  setActiveDrawerTab: (tab: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => void;
+  setActiveDrawerTab?: (tab: 'active' | 'completed' | 'stock86' | 'dispatched' | 'settings') => void;
   isMuted: boolean;
   onToggleMute: () => void;
 }
@@ -28,7 +32,6 @@ export const KitchenDrawer: React.FC<KitchenDrawerProps> = ({
   isOpen,
   onClose,
   activeDrawerTab,
-  setActiveDrawerTab,
   isMuted,
   onToggleMute
 }) => {
@@ -37,7 +40,9 @@ export const KitchenDrawer: React.FC<KitchenDrawerProps> = ({
     menuItems, 
     updateMenuItemStock,
     dispatchedItemStats,
-    currentBranch 
+    currentBranch,
+    updateKOTStatus,
+    showToast
   } = useApp();
 
   const [menuSearch, setMenuSearch] = useState('');
@@ -45,6 +50,7 @@ export const KitchenDrawer: React.FC<KitchenDrawerProps> = ({
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [ticketSort, setTicketSort] = useState<'oldest' | 'newest'>('oldest');
   const [dispatchedSearch, setDispatchedSearch] = useState('');
+  const [historySearch, setHistorySearch] = useState('');
 
   // Close on Escape key press
   useEffect(() => {
@@ -101,116 +107,155 @@ export const KitchenDrawer: React.FC<KitchenDrawerProps> = ({
     d.name.toLowerCase().includes(dispatchedSearch.toLowerCase())
   );
 
+  const filteredCompletedKots = completedKots.filter(kot => {
+    if (!historySearch.trim()) return true;
+    const q = historySearch.toLowerCase();
+    const matchKot = kot.kotNumber.toLowerCase().includes(q);
+    const matchTable = (kot.tableNumber || '').toLowerCase().includes(q);
+    const matchItem = kot.items.some(it => it.name.toLowerCase().includes(q));
+    return matchKot || matchTable || matchItem;
+  });
+
+  const handleRecallOrder = (kotId: string, kotNumber: string) => {
+    updateKOTStatus(kotId, 'preparing');
+    showToast('KOT Recalled', `KOT #${kotNumber} returned to Kitchen cooking queue`, 'info');
+  };
+
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-4xl max-h-[88vh] flex flex-col rounded-2xl bg-[#161B26] border border-white/15 shadow-2xl overflow-hidden text-slate-100"
+        className="w-full max-w-4xl max-h-[85vh] flex flex-col rounded-2xl bg-[#161B26] border border-white/10 shadow-2xl overflow-hidden text-slate-100"
         onClick={e => e.stopPropagation()}
       >
-        {/* Sticky Modal Header with Chef Hat, Title, Stats Pill Badges, and Large Close Button */}
-        <div className="px-6 py-3.5 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#161B26] sticky top-0 z-10">
+        {/* Dedicated Context-Aware Modal Header */}
+        <div className="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#161B26]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-white shadow-sm shrink-0">
-              <ChefHat className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white">
-                KITCHEN TOOLS & STOCK
-              </h2>
-              <p className="text-[11px] text-slate-400">Live Inventory, 86 Manager & Stations</p>
-            </div>
+            {activeDrawerTab === 'stock86' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-xs shrink-0">
+                  <Utensils className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white">
+                    Item Availability & Live 86 Inventory
+                  </h2>
+                  <p className="text-[11px] text-slate-400">Live portion limits, 86 manager & POS synchronization</p>
+                </div>
+              </>
+            )}
+
+            {activeDrawerTab === 'dispatched' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-xs shrink-0">
+                  <BarChart3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white">
+                    Dispatched Dishes Summary
+                  </h2>
+                  <p className="text-[11px] text-slate-400">Real-time served totals & Dine-in vs Takeaway breakdown</p>
+                </div>
+              </>
+            )}
+
+            {activeDrawerTab === 'completed' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400 shadow-xs shrink-0">
+                  <History className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white">
+                    Order History & Recall
+                  </h2>
+                  <p className="text-[11px] text-slate-400">Recently completed tickets with one-click recall to kitchen queue</p>
+                </div>
+              </>
+            )}
+
+            {activeDrawerTab === 'active' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-xs shrink-0">
+                  <ChefHat className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white">
+                    Active Kitchen Queue
+                  </h2>
+                  <p className="text-[11px] text-slate-400">Currently active KOT tickets</p>
+                </div>
+              </>
+            )}
+
+            {activeDrawerTab === 'settings' && (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shadow-xs shrink-0">
+                  <Sliders className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-sm sm:text-base tracking-wider uppercase text-white">
+                    Kitchen Display Settings
+                  </h2>
+                  <p className="text-[11px] text-slate-400">Audio chimes & ticket sorting preferences</p>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Center: Stock Stats Pill Badges (Available, Few Left, Sold Out) */}
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-600/40 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5 shadow-xs">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{availableCount} Available</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-amber-950/70 border border-amber-600/40 text-[11px] font-bold text-amber-400 flex items-center gap-1.5 shadow-xs">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-              <span>{fewLeftCount} Low</span>
-            </span>
-            <span className="px-2.5 py-1 rounded-lg bg-rose-950/70 border border-rose-600/40 text-[11px] font-bold text-rose-400 flex items-center gap-1.5 shadow-xs">
-              <Ban className="w-3.5 h-3.5 text-rose-400" />
-              <span>{soldOutCount} Sold Out</span>
-            </span>
+          {/* Right: Summary badges & Close Button */}
+          <div className="flex items-center gap-3">
+            {activeDrawerTab === 'stock86' && (
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-600/40 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5 shadow-xs">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{availableCount} Available</span>
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-amber-950/70 border border-amber-600/40 text-[11px] font-bold text-amber-400 flex items-center gap-1.5 shadow-xs">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{fewLeftCount} Low</span>
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-rose-950/70 border border-rose-600/40 text-[11px] font-bold text-rose-400 flex items-center gap-1.5 shadow-xs">
+                  <Ban className="w-3.5 h-3.5 text-rose-400" />
+                  <span>{soldOutCount} Sold Out</span>
+                </span>
+              </div>
+            )}
+
+            {activeDrawerTab === 'dispatched' && (
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-600/40 text-[11px] font-bold text-emerald-400 flex items-center gap-1.5 shadow-xs">
+                  <span>{totalDispatched} Total Served</span>
+                </span>
+                <span className="px-2.5 py-1 rounded-lg bg-[#1E2433] border border-white/10 text-[11px] font-semibold text-slate-300">
+                  {totalDineInDispatched} Dine-In • {totalTakeawayDispatched} Takeaway
+                </span>
+              </div>
+            )}
+
+            {activeDrawerTab === 'completed' && (
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded-lg bg-sky-950/70 border border-sky-600/40 text-[11px] font-bold text-sky-400 flex items-center gap-1.5 shadow-xs">
+                  <History className="w-3.5 h-3.5 text-sky-400" />
+                  <span>{completedKots.length} Completed</span>
+                </span>
+              </div>
+            )}
+
+            {/* Clean Close Button */}
+            <button 
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 hover:text-white transition-colors cursor-pointer border border-white/10 shrink-0"
+              title="Close (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-
-          {/* Large Close Button */}
-          <button 
-            onClick={onClose}
-            className="p-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 hover:text-white transition-colors cursor-pointer border border-white/10 shrink-0"
-            title="Close Modal (Esc)"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
-        {/* 5 Tab Navigation: Stock & 86 (Primary), Dispatched, Active, Done, Settings */}
-        <div className="grid grid-cols-5 bg-[#18191D] border-b border-white/[0.08] text-xs font-semibold p-2 gap-1.5 shrink-0">
-          <button
-            onClick={() => setActiveDrawerTab('stock86')}
-            className={`py-2 px-2 rounded-xl text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              activeDrawerTab === 'stock86' 
-                ? 'bg-[#1E2433] text-amber-400 font-bold shadow-sm border border-amber-500/40' 
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <Ban className="w-4 h-4 text-rose-400 shrink-0" />
-            <span className="truncate">Stock (86)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveDrawerTab('dispatched')}
-            className={`py-2 px-2 rounded-xl text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-              activeDrawerTab === 'dispatched' 
-                ? 'bg-[#1E2433] text-emerald-400 font-bold shadow-sm border border-emerald-500/40' 
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="truncate">Dispatched</span>
-          </button>
-
-          <button
-            onClick={() => setActiveDrawerTab('active')}
-            className={`py-2 px-2 rounded-xl text-center transition-all cursor-pointer ${
-              activeDrawerTab === 'active' 
-                ? 'bg-[#1E2433] text-white font-bold shadow-sm border border-white/10' 
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            Active ({activeKots.length})
-          </button>
-
-          <button
-            onClick={() => setActiveDrawerTab('completed')}
-            className={`py-2 px-2 rounded-xl text-center transition-all cursor-pointer ${
-              activeDrawerTab === 'completed' 
-                ? 'bg-[#1E2433] text-emerald-400 font-bold shadow-sm border border-white/10' 
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            Done ({completedKots.length})
-          </button>
-
-          <button
-            onClick={() => setActiveDrawerTab('settings')}
-            className={`py-2 px-2 rounded-xl text-center transition-all cursor-pointer ${
-              activeDrawerTab === 'settings' 
-                ? 'bg-[#1E2433] text-sky-400 font-bold shadow-sm border border-white/10' 
-                : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-            }`}
-          >
-            Settings
-          </button>
-        </div>
-
-        {/* Modal Body with 2-Column Responsive Item Controls */}
+        {/* Modal Body with smooth scrolling */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#18191D]">
           
           {/* TAB 1: ITEM AVAILABILITY & STOCK (86) CONTROLS */}
@@ -657,27 +702,96 @@ export const KitchenDrawer: React.FC<KitchenDrawerProps> = ({
             </div>
           )}
 
-          {/* TAB 4: PREPARED / COMPLETED ORDERS */}
+          {/* TAB 4: PREPARED / COMPLETED ORDERS & RECALL */}
           {activeDrawerTab === 'completed' && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-400 pb-2 border-b border-white/[0.08]">
-                <span>Recently Prepared / Served</span>
-                <span className="text-emerald-400 font-bold">{completedKots.length} Tickets</span>
+            <div className="space-y-4">
+              {/* Header Info & Search Filter */}
+              <div className="p-4 bg-[#161B26] border border-white/[0.08] rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <History className="w-4 h-4 text-sky-400" />
+                    <span className="text-xs font-bold text-white">Shift Order Archive & Recall Log</span>
+                  </div>
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-bold border border-sky-500/30">
+                    {completedKots.length} SERVED / READY
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Review previously dispatched or prepared orders. If a ticket was closed accidentally or requires kitchen rework, click <strong>Recall to Kitchen</strong> to restore it directly back to the active queue.
+                </p>
+
+                {/* Search Bar */}
+                <div className="relative pt-1">
+                  <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={historySearch}
+                    onChange={e => setHistorySearch(e.target.value)}
+                    placeholder="Search by KOT #, Table, or dish name..."
+                    className="w-full pl-9 pr-4 py-2 bg-[#1E2433] border border-white/[0.08] rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 shadow-xs"
+                  />
+                </div>
               </div>
-              {completedKots.length === 0 ? (
-                <div className="py-12 text-center text-slate-500 text-xs">
-                  No completed orders yet.
+
+              {/* Order Cards Grid */}
+              {filteredCompletedKots.length === 0 ? (
+                <div className="py-12 text-center text-slate-500 text-xs bg-[#161B26] rounded-2xl border border-white/[0.08]">
+                  {historySearch ? 'No completed orders match your search criteria.' : 'No completed orders in this shift yet.'}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {completedKots.slice(0, 16).map(kot => (
-                    <div key={kot.id} className="p-3 rounded-2xl bg-[#1E2433] border border-white/[0.08] shadow-md space-y-1.5">
+                  {filteredCompletedKots.map(kot => (
+                    <div 
+                      key={kot.id} 
+                      className="p-4 rounded-2xl bg-[#1E2433] border border-white/[0.08] shadow-md space-y-3 hover:border-white/20 transition-colors"
+                    >
+                      {/* Ticket Header */}
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-white text-xs">KOT #{kot.kotNumber}</span>
-                        <span className="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold uppercase">{kot.status}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-white text-xs sm:text-sm">KOT #{kot.kotNumber}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#161B26] border border-white/10 text-amber-400 font-bold">
+                            {kot.tableNumber ? `Table ${kot.tableNumber}` : 'Takeaway'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full font-bold uppercase">
+                          {kot.status}
+                        </span>
                       </div>
-                      <div className="text-[11px] text-slate-400">
-                        {kot.tableNumber ? `Table ${kot.tableNumber}` : 'Takeaway'} • {kot.items.length} items • {kot.timeFormatted}
+
+                      {/* Timestamp & Item count */}
+                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
+                        <Clock className="w-3 h-3 text-slate-400" />
+                        <span>Placed: {kot.timeFormatted}</span>
+                        {kot.readyAt && <span>• Ready: {kot.readyAt}</span>}
+                      </div>
+
+                      {/* Items List */}
+                      <div className="space-y-1 py-2 border-y border-white/[0.06] text-xs max-h-36 overflow-y-auto">
+                        {kot.items.map((it, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-slate-200">
+                            <span className="truncate pr-2">{it.name}</span>
+                            <span className="font-bold text-emerald-400 shrink-0">×{it.quantity}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {kot.specialInstructions && (
+                        <div className="text-[11px] text-amber-300/90 italic bg-amber-950/30 border border-amber-800/30 px-2.5 py-1 rounded-lg">
+                          Note: {kot.specialInstructions}
+                        </div>
+                      )}
+
+                      {/* Action Bar: Recall Button */}
+                      <div className="pt-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleRecallOrder(kot.id, kot.kotNumber)}
+                          className="px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 hover:text-white border border-sky-500/30 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                          title="Restore this order back to active kitchen queue"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5 text-sky-400" />
+                          <span>Recall to Kitchen</span>
+                        </button>
                       </div>
                     </div>
                   ))}

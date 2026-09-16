@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MenuItem, ItemVariation } from '../types';
+import { X, Check } from 'lucide-react';
 
 export interface ItemVariationModalProps {
   isOpen: boolean;
@@ -9,10 +10,9 @@ export interface ItemVariationModalProps {
 }
 
 /**
- * Petpooja-style Item Variation Selection Modal
- * Displays an exact centered white dialog with item name, base price,
- * variation buttons (red when selected, dark charcoal when unselected),
- * and bottom-right action buttons (Cancel / Save).
+ * Item Variation Selection Modal
+ * Dark system theme with dynamic price sync in the header and confirmation button,
+ * high-contrast emerald selection states, and top-right checkmark badges.
  */
 export const ItemVariationModal: React.FC<ItemVariationModalProps> = ({
   isOpen,
@@ -32,60 +32,79 @@ export const ItemVariationModal: React.FC<ItemVariationModalProps> = ({
     return null;
   }
 
+  // Find currently selected variation with fallback to the first variation
+  const selectedVariation =
+    item.variations.find(v => v.id === selectedVariationId) || item.variations[0];
+
+  // Dynamic price based on active variation
+  const currentPrice = selectedVariation ? selectedVariation.price : item.price;
+
   const handleSave = () => {
-    const selected = item.variations?.find(v => v.id === selectedVariationId) || item.variations?.[0];
-    if (selected) {
-      onSave(item, selected);
+    if (selectedVariation) {
+      onSave(item, selectedVariation);
     }
     onClose();
   };
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 select-none animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="w-[520px] max-w-[92vw] bg-white rounded-lg shadow-xl p-5 flex flex-col justify-between"
+        className="w-full max-w-lg bg-[#161B26] border border-white/10 rounded-2xl shadow-2xl text-white p-6 flex flex-col justify-between"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header Bar */}
+        {/* Header Bar with Dynamic Price Update */}
         <div>
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-            <div className="text-slate-900 font-semibold text-base">
-              {item.name} | ₹{item.price}
+          <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
+            <div className="text-white font-bold text-base tracking-tight flex items-center gap-2">
+              <span>{item.name}</span>
+              <span className="text-gray-500 font-normal">•</span>
+              <span className="text-emerald-400 font-semibold transition-all">
+                ₹{currentPrice}
+              </span>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-500 hover:text-slate-800 text-lg cursor-pointer leading-none p-1 rounded transition-colors"
+              className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
               title="Close"
+              aria-label="Close"
             >
-              ✕
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Variation Selection Area */}
           <div>
-            <div className="text-xs font-medium text-slate-600 mb-2">
-              Variation
+            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+              Select Portion / Variation
             </div>
-            <div className="flex flex-wrap gap-3 my-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-2">
               {item.variations.map(variation => {
-                const isSelected = selectedVariationId === variation.id;
+                const isSelected = selectedVariation?.id === variation.id;
                 return (
                   <button
                     key={variation.id}
                     type="button"
                     onClick={() => setSelectedVariationId(variation.id)}
-                    className={`min-w-[110px] py-2.5 px-3 rounded text-center flex flex-col justify-center items-center cursor-pointer transition-all ${
+                    className={`relative py-3.5 px-4 rounded-xl text-center flex flex-col justify-center items-center transition-all duration-150 ${
                       isSelected
-                        ? 'bg-[#dc2626] text-white shadow-sm'
-                        : 'bg-[#334155] hover:bg-[#1e293b] text-slate-100'
+                        ? 'border-2 border-emerald-500 bg-emerald-950/40 text-white shadow-lg shadow-emerald-950/50 scale-[1.03]'
+                        : 'bg-[#1E2433] border border-white/10 text-gray-300 hover:border-emerald-500/50 hover:bg-[#252C3E] cursor-pointer'
                     }`}
                   >
-                    <span className="text-xs font-medium">{variation.name}</span>
-                    <span className="text-xs font-bold mt-0.5">₹{variation.price}</span>
+                    {/* Green checkmark badge at top-right of selected card */}
+                    {isSelected && (
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-950/60 ring-2 ring-[#161B26]">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </span>
+                    )}
+                    <span className="text-sm font-bold truncate w-full">{variation.name}</span>
+                    <span className="text-emerald-400 font-semibold text-xs mt-1">
+                      ₹{variation.price}
+                    </span>
                   </button>
                 );
               })}
@@ -93,21 +112,22 @@ export const ItemVariationModal: React.FC<ItemVariationModalProps> = ({
           </div>
         </div>
 
-        {/* Bottom Right Action Footer */}
-        <div className="flex justify-end items-center gap-3 pt-6 border-t border-slate-100 mt-6">
+        {/* Bottom Right Action Footer with Dynamic Button Price */}
+        <div className="flex justify-end items-center gap-3 pt-6 border-t border-white/10 mt-6">
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-700 hover:bg-slate-100 px-4 py-1.5 rounded text-sm font-medium transition-colors cursor-pointer"
+            className="bg-transparent hover:bg-white/5 text-gray-400 hover:text-white border border-white/10 rounded-xl px-5 py-2.5 text-sm font-medium transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="bg-[#dc2626] hover:bg-[#b91c1c] text-white px-5 py-1.5 rounded text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-xl px-6 py-2.5 shadow-md shadow-emerald-900/30 text-sm flex items-center gap-1.5 transition-all active:scale-98 cursor-pointer"
           >
-            Save
+            <Check className="w-4 h-4 stroke-[2.5]" />
+            <span>Add Item (₹{currentPrice})</span>
           </button>
         </div>
       </div>

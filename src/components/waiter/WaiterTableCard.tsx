@@ -26,11 +26,9 @@ export const WaiterTableCard: React.FC<WaiterTableCardProps> = ({
       case 'available':
         return <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-800">AVAILABLE</span>;
       case 'occupied':
-        return <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-950/60 text-amber-300 border border-amber-800">OCCUPIED</span>;
       case 'ready':
-        return <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-950/60 text-emerald-400 border border-emerald-800 animate-pulse">FOOD READY</span>;
       case 'waiting':
-        return <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-950/60 text-sky-300 border border-sky-800">WAITING</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-950/60 text-amber-300 border border-amber-800">OCCUPIED</span>;
       case 'billing':
         return <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-950/60 text-purple-300 border border-purple-800">BILL REQUESTED</span>;
       case 'cleaning':
@@ -45,11 +43,9 @@ export const WaiterTableCard: React.FC<WaiterTableCardProps> = ({
       case 'available':
         return 'border-[rgba(255,255,255,0.12)] hover:border-[#10B981] hover:shadow-[0_8px_20px_-4px_rgba(16,185,129,0.35)]';
       case 'occupied':
-        return 'border-[#F59E0B]/40 hover:border-[#F59E0B] hover:shadow-[0_8px_20px_-4px_rgba(245,158,11,0.35)]';
       case 'ready':
-        return 'border-[#14B8A6]/40 hover:border-[#14B8A6] hover:shadow-[0_8px_20px_-4px_rgba(20,184,166,0.35)]';
       case 'waiting':
-        return 'border-[#38BDF8]/40 hover:border-[#38BDF8] hover:shadow-[0_8px_20px_-4px_rgba(56,189,248,0.35)]';
+        return 'border-[#F59E0B]/40 hover:border-[#F59E0B] hover:shadow-[0_8px_20px_-4px_rgba(245,158,11,0.35)]';
       case 'billing':
         return 'border-[#8B5CF6]/40 hover:border-[#8B5CF6] hover:shadow-[0_8px_20px_-4px_rgba(139,92,246,0.35)]';
       case 'cleaning':

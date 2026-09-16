@@ -10,7 +10,12 @@ export * from './waiter/WaiterNav';
 export * from './kitchen/KitchenLayout';
 export * from './kitchen/KitchenHeader';
 export * from './kitchen/KitchenDrawer';
+export * from './kitchen/KitchenNav';
 
 export * from './cashier/CashierLayout';
 export * from './cashier/CashierHeader';
 export * from './cashier/CashierSidebar';
+
+export * from './manager/ManagerLayout';
+export * from './manager/ManagerHeader';
+

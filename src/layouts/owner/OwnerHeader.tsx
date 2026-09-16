@@ -9,8 +9,10 @@ import {
   Bell, 
   RotateCcw, 
   ChevronDown,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Repeat
 } from 'lucide-react';
+import { RoleSwitcherModal } from '../../components/RoleSwitcherModal';
 
 export interface OwnerHeaderProps {
   onToggleMobileSidebar?: () => void;
@@ -32,6 +34,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
   const [currentDate, setCurrentDate] = useState<string>('');
   const [showBranchDropdown, setShowBranchDropdown] = useState<boolean>(false);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -198,8 +201,23 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
           )}
         </div>
 
+        {/* Switch Role Button */}
+        <button
+          type="button"
+          onClick={() => setIsRoleModalOpen(true)}
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 transition-colors cursor-pointer text-xs"
+          title="Switch User Role / Profile"
+        >
+          <Repeat className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Switch Role</span>
+        </button>
+
         {/* Owner Profile */}
-        <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+        <div 
+          onClick={() => setIsRoleModalOpen(true)}
+          className="flex items-center gap-2 pl-2 border-l border-slate-200 cursor-pointer hover:opacity-90 transition-opacity"
+          title="Click to switch role"
+        >
           <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs">
             {currentUser?.name ? currentUser.name.charAt(0) : <User className="w-4 h-4" />}
           </div>
@@ -222,6 +240,12 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({ onToggleMobileSidebar,
           <LogOut className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Role Switcher Modal */}
+      <RoleSwitcherModal 
+        isOpen={isRoleModalOpen}
+        onClose={() => setIsRoleModalOpen(false)}
+      />
     </header>
   );
 };

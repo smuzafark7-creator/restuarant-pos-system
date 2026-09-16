@@ -178,7 +178,7 @@ export const LoginPage: React.FC = () => {
               >
                 <div>
                   <div className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 flex items-center gap-1.5 leading-tight">
-                    <span>Owner / Manager:</span>
+                    <span>Owner / Super Admin:</span>
                     <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
                       OWNER
                     </span>
@@ -194,6 +194,35 @@ export const LoginPage: React.FC = () => {
                     handleDirectLogin('admin@restaurant.com', 'admin123');
                   }}
                   className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-colors shadow-2xs cursor-pointer shrink-0 ml-2"
+                >
+                  Sign in
+                </button>
+              </div>
+
+              {/* Branch Manager */}
+              <div 
+                onClick={() => handleSelectDemo('manager@restaurant.com', 'manager123')}
+                className="py-2 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer transition-all flex items-center justify-between group shadow-2xs"
+                title="Click to populate credentials"
+              >
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 flex items-center gap-1.5 leading-tight">
+                    <span>Branch Manager (Branch 1):</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                      SUPERVISOR
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                    manager@restaurant.com • manager123
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDirectLogin('manager@restaurant.com', 'manager123');
+                  }}
+                  className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-colors shadow-2xs cursor-pointer shrink-0 ml-2"
                 >
                   Sign in
                 </button>

@@ -18,6 +18,8 @@ export const CashierPOSView: React.FC = () => {
     setCartOrderType,
     cartTableNumber,
     setCartTableNumber,
+    cartTakeawayId,
+    cartCustomerMobile,
     kots,
     currentBranch,
   } = useApp();
@@ -61,19 +63,43 @@ export const CashierPOSView: React.FC = () => {
     });
   }, [menuItems, selectedCategory, dietaryFilter, searchQuery]);
 
-  // Active unbilled KOTs for current table
+  // Active unbilled KOTs for current table or takeaway ticket
   const activeSessionKots = useMemo(() => {
-    if (cartOrderType !== 'dine_in' || !cartTableNumber) return [];
     const effectiveBranch = currentBranch === 'all' ? 'main' : currentBranch;
-    return kots.filter(
-      k =>
-        k.branchId === effectiveBranch &&
-        k.orderType === 'dine_in' &&
-        k.tableNumber?.toLowerCase() === cartTableNumber.toLowerCase() &&
-        !k.isBilled &&
-        k.status !== 'cancelled'
-    );
-  }, [kots, currentBranch, cartOrderType, cartTableNumber]);
+    if (cartOrderType === 'dine_in') {
+      if (!cartTableNumber) return [];
+      return kots.filter(
+        k =>
+          k.branchId === effectiveBranch &&
+          k.orderType === 'dine_in' &&
+          k.tableNumber?.toLowerCase() === cartTableNumber.toLowerCase() &&
+          !k.isBilled &&
+          k.status !== 'cancelled'
+      );
+    } else {
+      // Takeaway, delivery, or parcel
+      return kots.filter(
+        k => {
+          if (k.branchId !== effectiveBranch) return false;
+          if (k.isBilled || k.status === 'cancelled') return false;
+          const isTakeawayType = k.orderType === 'takeaway' || k.orderType === 'parcel' || k.orderType === 'delivery';
+          if (!isTakeawayType) return false;
+
+          const kotTakeawayId = k.takeawayId || (k.kotNumber ? `TK-${k.kotNumber.replace(/\D/g, '').slice(-3)}` : undefined);
+          if (cartTakeawayId && kotTakeawayId) {
+            return kotTakeawayId.toLowerCase() === cartTakeawayId.toLowerCase();
+          }
+          if (cartCustomerMobile && k.customerMobile) {
+            return k.customerMobile === cartCustomerMobile;
+          }
+          if (cartTakeawayId && !kotTakeawayId && !k.customerMobile) {
+            return true;
+          }
+          return false;
+        }
+      );
+    }
+  }, [kots, currentBranch, cartOrderType, cartTableNumber, cartTakeawayId, cartCustomerMobile]);
 
   const handleItemClick = (item: MenuItem) => {
     if (item.variations && item.variations.length > 0) {
@@ -104,10 +130,10 @@ export const CashierPOSView: React.FC = () => {
         totalItems={(menuItems || []).length}
       />
 
-      {/* 2. Menu Items & Fast Search (Middle) - Column 3: The ONLY scrolling section */}
-      <div className="flex-1 h-full overflow-y-auto p-3 bg-[#080d1a] border-r border-slate-800">
-        {/* Sticky Item Search & Filters */}
-        <div className="sticky top-0 z-10 -mx-3 -mt-3 mb-3 p-3 bg-[#0f172a] border-b border-slate-800 shrink-0 shadow-sm">
+      {/* 2. Menu Items & Fast Search (Middle) - Touches top edge */}
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#080d1a] border-r border-slate-800 min-w-0">
+        {/* Sticky Item Search & Filters - Touches top edge */}
+        <div className="p-3 bg-[#0f172a] border-b border-slate-800 shrink-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             {/* Search */}
             <div className="relative flex-1">
@@ -171,57 +197,59 @@ export const CashierPOSView: React.FC = () => {
           </div>
         </div>
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
-          {filteredItems.map(item => {
-            const matchingCartItems = (cart || []).filter(
-              c => c.item.id === item.id || c.item.id.startsWith(`${item.id}_`)
-            );
-            const inCartQty = matchingCartItems.reduce((acc, c) => acc + c.quantity, 0);
+        {/* Cards Grid Container - The ONLY scrolling area in the middle */}
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4 gap-2.5">
+            {filteredItems.map(item => {
+              const matchingCartItems = (cart || []).filter(
+                c => c.item.id === item.id || c.item.id.startsWith(`${item.id}_`)
+              );
+              const inCartQty = matchingCartItems.reduce((acc, c) => acc + c.quantity, 0);
 
-            return (
-              <CashierItemCard
-                key={item.id}
-                item={item}
-                inCartQty={inCartQty}
-                onAdd={() => handleItemClick(item)}
-                onIncrement={() => {
-                  if (item.variations && item.variations.length > 0) {
-                    handleItemClick(item);
-                  } else {
-                    updateCartQuantity(item.id, 1);
-                  }
-                }}
-                onDecrement={() => {
-                  if (item.variations && item.variations.length > 0) {
-                    if (matchingCartItems.length > 0) {
-                      updateCartQuantity(matchingCartItems[matchingCartItems.length - 1].item.id, -1);
+              return (
+                <CashierItemCard
+                  key={item.id}
+                  item={item}
+                  inCartQty={inCartQty}
+                  onAdd={() => handleItemClick(item)}
+                  onIncrement={() => {
+                    if (item.variations && item.variations.length > 0) {
+                      handleItemClick(item);
+                    } else {
+                      updateCartQuantity(item.id, 1);
                     }
-                  } else {
-                    updateCartQuantity(item.id, -1);
-                  }
-                }}
-              />
-            );
-          })}
-        </div>
-
-        {filteredItems.length === 0 && (
-          <div className="flex flex-col items-center justify-center p-12 text-slate-400">
-            <p className="text-sm">No items found matching criteria.</p>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery('');
-                setSelectedCategory('All');
-                setDietaryFilter('all');
-              }}
-              className="mt-3 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 cursor-pointer"
-            >
-              Reset Filters
-            </button>
+                  }}
+                  onDecrement={() => {
+                    if (item.variations && item.variations.length > 0) {
+                      if (matchingCartItems.length > 0) {
+                        updateCartQuantity(matchingCartItems[matchingCartItems.length - 1].item.id, -1);
+                      }
+                    } else {
+                      updateCartQuantity(item.id, -1);
+                    }
+                  }}
+                />
+              );
+            })}
           </div>
-        )}
+
+          {filteredItems.length === 0 && (
+            <div className="flex flex-col items-center justify-center p-12 text-slate-400">
+              <p className="text-sm">No items found matching criteria.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('All');
+                  setDietaryFilter('all');
+                }}
+                className="mt-3 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 cursor-pointer"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 3. Cashier Order, Audit & Settlement Panel (Right) */}

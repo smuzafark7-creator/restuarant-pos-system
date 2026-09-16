@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { KitchenHeader } from './KitchenHeader';
-import { KitchenDrawer } from './KitchenDrawer';
+import { KitchenNav } from './KitchenNav';
+import { KitchenStockView } from './views/KitchenStockView';
+import { KitchenDispatchedView } from './views/KitchenDispatchedView';
+import { KitchenHistoryView } from './views/KitchenHistoryView';
 import { ToastContainer } from '../../components/ToastContainer';
+import { ThermalReceiptModal } from '../../components/ThermalReceiptModal';
 import { useApp } from '../../context/AppContext';
 
 interface KitchenLayoutProps {
@@ -9,41 +13,41 @@ interface KitchenLayoutProps {
 }
 
 export const KitchenLayout: React.FC<KitchenLayoutProps> = ({ children }) => {
-  const { 
-    isKitchenDrawerOpen, 
-    setIsKitchenDrawerOpen, 
-    kitchenDrawerTab, 
-    setKitchenDrawerTab 
-  } = useApp();
+  const { activeKitchenTab, setActiveKitchenTab } = useApp();
   const [selectedStation, setSelectedStation] = useState('All Stations');
   const [isMuted, setIsMuted] = useState(false);
 
   return (
-    <div className="h-screen bg-[#18191D] flex flex-col font-sans antialiased text-slate-100 select-none">
-      {/* Ultra-minimal Kitchen Header */}
-      <KitchenHeader 
-        onToggleDrawer={() => setIsKitchenDrawerOpen(!isKitchenDrawerOpen)}
-        selectedStation={selectedStation}
-        onSelectStation={setSelectedStation}
-        isMuted={isMuted}
-        onToggleMute={() => setIsMuted(prev => !prev)}
-      />
+    <div className="h-screen max-h-screen w-full flex flex-col overflow-hidden bg-[#18191D] font-sans antialiased text-slate-100 select-none">
+      {/* 1. PERSISTENT MASTER TOPBAR - Single Consolidated Bar */}
+      <div className="shrink-0 z-30">
+        <KitchenHeader 
+          selectedStation={selectedStation}
+          onSelectStation={setSelectedStation}
+          isMuted={isMuted}
+          onToggleMute={() => setIsMuted(prev => !prev)}
+        />
+      </div>
 
-      {/* Full-width Kitchen Display Workspace */}
-      <main className="flex-1 min-w-0 bg-[#18191D] flex flex-col min-h-0">
-        {children}
+      {/* 2. MAIN FULL-SCREEN VIEWPORT */}
+      <main className="flex-1 min-h-0 bg-[#18191D] flex flex-col relative overflow-hidden">
+        {activeKitchenTab === 'live' && children}
+        {activeKitchenTab === 'stock86' && <KitchenStockView />}
+        {activeKitchenTab === 'dispatched' && <KitchenDispatchedView />}
+        {activeKitchenTab === 'history' && <KitchenHistoryView />}
       </main>
 
-      {/* Collapsible Kitchen Drawer strictly for Active Orders, Completed, 86 Stock, Dispatched & Settings */}
-      <KitchenDrawer 
-        isOpen={isKitchenDrawerOpen}
-        onClose={() => setIsKitchenDrawerOpen(false)}
-        activeDrawerTab={kitchenDrawerTab}
-        setActiveDrawerTab={setKitchenDrawerTab}
-        isMuted={isMuted}
-        onToggleMute={() => setIsMuted(prev => !prev)}
-      />
+      {/* 3. PERSISTENT DEDICATED BOTTOM NAVIGATION BAR */}
+      <div className="shrink-0 z-40">
+        <KitchenNav 
+          activeTab={activeKitchenTab}
+          onSelectTab={(tab) => {
+            setActiveKitchenTab(tab);
+          }}
+        />
+      </div>
 
+      <ThermalReceiptModal />
       <ToastContainer />
     </div>
   );

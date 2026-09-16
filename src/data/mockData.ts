@@ -8,6 +8,7 @@ export const BRANCHES: Branch[] = [
     address: 'Grand Promenade, 42 MG Road, Indiranagar, Bengaluru - 560038',
     phone: '+91 80 2558 9123',
     gstin: '29AABCR1234F1Z5',
+    fssai: '11223334000128',
     color: '#E05A47'
   },
   {
@@ -17,6 +18,7 @@ export const BRANCHES: Branch[] = [
     address: 'Central Mall Plaza, 4th Block, Jayanagar, Bengaluru - 560011',
     phone: '+91 80 4122 8490',
     gstin: '29AABCR1234F2Z4',
+    fssai: '11223334000192',
     color: '#2A9D8F'
   },
   {
@@ -26,6 +28,7 @@ export const BRANCHES: Branch[] = [
     address: 'Bayview Waterfront, Marine Parade, Promenade - 560001',
     phone: '+91 80 3981 7765',
     gstin: '29AABCR1234F3Z3',
+    fssai: '11223334000215',
     color: '#E76F51'
   }
 ];
@@ -41,7 +44,7 @@ export const DEMO_USERS: User[] = [
   },
   {
     id: 'usr_2',
-    name: 'Sameer Khan (Manager)',
+    name: 'Vikram Sharma (Manager)',
     email: 'manager@restaurant.com',
     role: 'manager',
     branchId: 'main',
@@ -470,7 +473,7 @@ export const generateInitialTables = (branchId: 'main' | 'city' | 'beach'): Rest
     { id: `${branchId}_t1`, number: 1, name: 'Table 1', capacity: 2, branchId, status: 'occupied', currentAmount: 640, seatedAt: '12:15 PM', guestCount: 2, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
     { id: `${branchId}_t2`, number: 2, name: 'Table 2', capacity: 4, branchId, status: 'occupied', currentAmount: 1120, seatedAt: '12:22 PM', guestCount: 3, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
     { id: `${branchId}_t3`, number: 3, name: 'Table 3', capacity: 4, branchId, status: 'billing', currentAmount: 1480, seatedAt: '11:45 AM', guestCount: 4, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
-    { id: `${branchId}_t4`, number: 4, name: 'Table 4', capacity: 6, branchId, status: 'waiting', currentAmount: 890, seatedAt: '12:35 PM', guestCount: 5, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
+    { id: `${branchId}_t4`, number: 4, name: 'Table 4', capacity: 6, branchId, status: 'occupied', currentAmount: 890, seatedAt: '12:35 PM', guestCount: 5, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5' },
     { id: `${branchId}_t5`, number: 5, name: 'Table 5', capacity: 4, branchId, status: branchId === 'main' ? 'billing' : 'available', currentAmount: branchId === 'main' ? 2709 : 0, seatedAt: branchId === 'main' ? '12:30 PM' : undefined, guestCount: branchId === 'main' ? 3 : undefined, guestName: branchId === 'main' ? 'Rahul Sharma' : undefined, assignedWaiterName: 'Ramesh Patel', assignedWaiterId: 'usr_5', billRequested: branchId === 'main', billRequestedAt: branchId === 'main' ? '12:45 PM' : undefined, billRequestedBy: branchId === 'main' ? 'Ramesh Patel' : undefined },
     { id: `${branchId}_t6`, number: 6, name: 'Table 6', capacity: 2, branchId, status: branchId === 'main' ? 'billing' : 'available', currentAmount: branchId === 'main' ? 840 : 0, seatedAt: branchId === 'main' ? '12:35 PM' : undefined, guestCount: branchId === 'main' ? 2 : undefined, guestName: branchId === 'main' ? 'Ananya Sen' : undefined, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6', billRequested: branchId === 'main', billRequestedAt: branchId === 'main' ? '12:52 PM' : undefined, billRequestedBy: branchId === 'main' ? 'Priya Nair' : undefined },
     { id: `${branchId}_t7`, number: 7, name: 'Table 7', capacity: 4, branchId, status: 'occupied', currentAmount: 760, seatedAt: '12:40 PM', guestCount: 2, assignedWaiterName: 'Priya Nair', assignedWaiterId: 'usr_6' },
@@ -636,6 +639,7 @@ export const INITIAL_KOTS: KOT[] = [
     branchId: 'main',
     branchName: 'Main Branch',
     orderType: 'takeaway',
+    takeawayId: 'TK-101',
     status: 'new',
     createdAt: '2026-09-07T12:56:00',
     timeFormatted: '12:56 PM',
@@ -717,10 +721,12 @@ export const INITIAL_KOTS: KOT[] = [
     branchId: 'main',
     branchName: 'Main Branch',
     orderType: 'takeaway',
-    status: 'preparing',
+    takeawayId: 'TK-100',
+    status: 'ready',
     createdAt: '2026-09-07T12:42:00',
     timeFormatted: '12:42 PM',
     startedAt: '12:44 PM',
+    readyAt: '12:55 PM',
     customerName: 'Deepak Varma',
     customerMobile: '9880123456',
     items: [
@@ -731,20 +737,41 @@ export const INITIAL_KOTS: KOT[] = [
     totalAmount: 820,
     isBilled: false
   },
-  // Ready to Serve (2 KOTs - Plated / Waiting Pickup)
+  // Ready to Serve (2 Takeaway packets for Cashier + 2 Dine-in tables for Waiter)
   {
-    id: 'kot_10035',
-    kotNumber: 'KOT-10035',
+    id: 'kot_10111',
+    kotNumber: 'KOT-10111',
     branchId: 'main',
     branchName: 'Main Branch',
-    tableNumber: 'Table 5',
-    tableId: 'main_t5',
-    orderType: 'dine_in',
+    orderType: 'takeaway',
+    takeawayId: 'TK-111',
     status: 'ready',
     createdAt: '2026-09-07T12:25:00',
     timeFormatted: '12:25 PM',
     startedAt: '12:26 PM',
     readyAt: '12:42 PM',
+    customerName: 'Sanjay Kapoor',
+    customerMobile: '9845012345',
+    items: [
+      { menuItemId: 'item_10', name: 'Paneer 65', quantity: 1, rate: 210, isVeg: true },
+      { menuItemId: 'item_22', name: 'Mango Lassi', quantity: 1, rate: 80, isVeg: true }
+    ],
+    totalAmount: 290,
+    isBilled: false
+  },
+  {
+    id: 'kot_10035',
+    kotNumber: 'KOT-10035',
+    branchId: 'main',
+    branchName: 'Main Branch',
+    tableNumber: 'Table 2',
+    tableId: 'main_t2',
+    orderType: 'dine_in',
+    status: 'ready',
+    createdAt: '2026-09-07T12:22:00',
+    timeFormatted: '12:22 PM',
+    startedAt: '12:24 PM',
+    readyAt: '12:36 PM',
     items: [
       { menuItemId: 'item_1', name: 'Chicken Biryani', quantity: 1, rate: 280, isVeg: false },
       { menuItemId: 'item_22', name: 'Mango Lassi', quantity: 2, rate: 80, isVeg: true }
@@ -757,8 +784,8 @@ export const INITIAL_KOTS: KOT[] = [
     kotNumber: 'KOT-10036',
     branchId: 'main',
     branchName: 'Main Branch',
-    tableNumber: 'Table 10',
-    tableId: 'main_t10',
+    tableNumber: 'Table 4',
+    tableId: 'main_t4',
     orderType: 'dine_in',
     status: 'ready',
     createdAt: '2026-09-07T12:20:00',
@@ -1086,6 +1113,36 @@ export const INITIAL_KOTS: KOT[] = [
 ];
 
 export const INITIAL_BILLS: Bill[] = [
+  {
+    id: 'inv_10046',
+    billNumber: 'INV-10046',
+    kotNumber: 'KOT-10046',
+    branchId: 'main',
+    branchName: 'Main Branch',
+    date: '2026-09-15',
+    time: '01:24 PM',
+    tableNumber: 'Table 5',
+    orderType: 'dine_in',
+    customerName: 'Rahul Sharma',
+    customerMobile: '9820123456',
+    stewardName: 'Ramesh Patel',
+    fssaiLicNo: '11518022000451',
+    items: [
+      { id: 'item_amravathi_basket', name: 'AMRAVATHI ROTI BASKET', quantity: 2, rate: 180, amount: 360 },
+      { id: 'item_1', name: 'Chicken Biryani Special', quantity: 4, rate: 320, amount: 1280 },
+      { id: 'item_8', name: 'Butter Chicken Handi', quantity: 3, rate: 340, amount: 1020 },
+      { id: 'item_4', name: 'Chicken 65 Crunchy', quantity: 1, rate: 240, amount: 240 },
+      { id: 'item_14', name: 'Garlic Naan Butter', quantity: 3, rate: 76, amount: 228 }
+    ],
+    subtotal: 3128,
+    gstPercent: 5,
+    gstAmount: 156.40,
+    discountAmount: 0,
+    grandTotal: 3284,
+    paymentMethod: 'upi',
+    status: 'paid',
+    cashierName: 'Anita Deshmukh'
+  },
   {
     id: 'inv_10001',
     billNumber: 'INV-10001',

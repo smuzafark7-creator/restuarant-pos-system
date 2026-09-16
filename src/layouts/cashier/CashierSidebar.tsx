@@ -6,6 +6,7 @@ import {
   FileSpreadsheet, 
   Printer, 
   Receipt,
+  FileText,
   X
 } from 'lucide-react';
 
@@ -22,6 +23,8 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
     pendingBillRequests, 
     tables, 
     bills, 
+    kots,
+    filteredKots,
     showToast,
     openReceiptModal,
     currentUser
@@ -41,6 +44,12 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
 
   // Unsettled / unpaid bills
   const unsettledCount = bills.filter(b => b.status === 'unpaid').length;
+
+  // Active KOTs count (tickets in active queue: new, preparing, ready)
+  const activeTickets = filteredKots || kots || [];
+  const activeKotsCount = activeTickets.filter(
+    k => k.status === 'new' || k.status === 'preparing' || k.status === 'ready'
+  ).length;
 
   // Day-End Z-Report calculations
   const totalSales = bills.reduce((sum, b) => sum + b.grandTotal, 0);
@@ -129,6 +138,29 @@ export const CashierSidebar: React.FC<CashierSidebarProps> = ({ activeTabOverrid
               )}
             </div>
             <span className="text-[10px] mt-1 text-center leading-tight">Bills</span>
+          </button>
+
+          {/* 4. Active KOTs */}
+          <button
+            id="cashier-sidebar-kot"
+            type="button"
+            onClick={() => handleNavigate('kot')}
+            className={`w-14 sm:w-16 h-16 rounded-xl flex flex-col items-center justify-center p-1.5 transition-all relative cursor-pointer ${
+              currentActive === 'kot'
+                ? 'bg-slate-800 text-white border border-slate-700 font-semibold'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+            title="Active Kitchen Order Tickets (KOT)"
+          >
+            <div className="relative">
+              <FileText className="w-5 h-5" />
+              {activeKotsCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center shadow-xs">
+                  {activeKotsCount}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] mt-1 text-center leading-tight">KOTs</span>
           </button>
         </div>
 

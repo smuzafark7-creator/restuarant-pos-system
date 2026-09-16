@@ -10,7 +10,8 @@ import {
   Users, 
   Utensils, 
   BarChart3, 
-  Settings 
+  Settings,
+  FileSpreadsheet 
 } from 'lucide-react';
 
 export type AppRouteId = 
@@ -23,7 +24,8 @@ export type AppRouteId =
   | 'customers'
   | 'menu'
   | 'reports'
-  | 'settings';
+  | 'settings'
+  | 'zreport';
 
 export interface RouteConfig {
   id: AppRouteId;
@@ -103,6 +105,13 @@ export const APP_ROUTES: RouteConfig[] = [
     allowedRoles: ['owner', 'manager'],
     icon: Settings,
     description: 'Multi-branch settings, GSTIN configuration, and printers'
+  },
+  {
+    id: 'zreport',
+    label: 'Day-End Z-Report',
+    allowedRoles: ['owner', 'manager', 'cashier'],
+    icon: FileSpreadsheet,
+    description: 'Day-End Z-Report shift close audit and drawer settlement'
   }
 ];
 

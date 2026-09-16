@@ -15,7 +15,10 @@ import {
   X,
   Clock,
   User,
-  Utensils
+  Utensils,
+  DollarSign,
+  Ban,
+  AlertTriangle
 } from 'lucide-react';
 import { BRANCHES } from '../data/mockData';
 
@@ -51,7 +54,13 @@ export const BillsPage: React.FC = () => {
 
       const matchPayment = paymentFilter === 'All' || bill.paymentMethod.toLowerCase() === paymentFilter.toLowerCase();
       const matchOrderType = orderTypeFilter === 'All' || bill.orderType.toLowerCase() === orderTypeFilter.toLowerCase();
-      const matchStatus = statusFilter === 'All' || statusFilter === 'paid';
+      const matchStatus = statusFilter === 'All' 
+        ? true 
+        : statusFilter === 'paid' 
+          ? bill.status !== 'cancelled' 
+          : statusFilter === 'cancelled' 
+            ? bill.status === 'cancelled' 
+            : bill.status === statusFilter;
 
       // Date filtering
       let matchDate = true;
@@ -67,13 +76,30 @@ export const BillsPage: React.FC = () => {
   }, [bills, currentBranch, selectedBranch, searchQuery, paymentFilter, orderTypeFilter, statusFilter, dateFilter]);
 
   const totalAmount = useMemo(() => {
-    return filtered.reduce((sum, b) => sum + b.grandTotal, 0);
+    return filtered
+      .filter(b => b.status !== 'cancelled')
+      .reduce((sum, b) => sum + b.grandTotal, 0);
   }, [filtered]);
+
+  // Calculate drawer cash: sum of cash paid bills + opening float (₹5,000)
+  const shiftCashSales = useMemo(() => {
+    return bills
+      .filter(b => b.status !== 'cancelled' && b.paymentMethod === 'cash')
+      .reduce((sum, b) => sum + b.grandTotal, 0);
+  }, [bills]);
+
+  const shiftTotalPaid = useMemo(() => {
+    return bills
+      .filter(b => b.status !== 'cancelled')
+      .reduce((sum, b) => sum + b.grandTotal, 0);
+  }, [bills]);
+
+  const drawerCashBalance = 5000 + shiftCashSales;
 
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 max-w-7xl mx-auto font-sans text-slate-200">
       {/* Top Banner (Dark Slate Surface) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0f172a] p-4 sm:p-5 rounded-xl border border-slate-800 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#0f172a] p-4 sm:p-5 rounded-xl border border-slate-800 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Receipt className="w-5 h-5 text-emerald-400" />
@@ -84,17 +110,54 @@ export const BillsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">
-              Filtered Revenue
-            </span>
-            <span className="text-lg font-bold text-emerald-400">
-              ₹{totalAmount.toLocaleString('en-IN')}
-            </span>
+        {/* Financial Overview Metrics Group */}
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+          {/* Drawer Cash (Emerald badge) */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 shadow-xs">
+            <DollarSign className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="text-left">
+              <span className="text-[10px] text-emerald-300/80 uppercase tracking-wider font-semibold block leading-tight">
+                Drawer Cash
+              </span>
+              <span className="text-sm font-bold text-emerald-400 font-mono">
+                ₹{drawerCashBalance.toLocaleString('en-IN')}
+              </span>
+            </div>
           </div>
-          <div className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200">
-            {filtered.length} Bills
+
+          {/* Shift Bills */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#080d1a] border border-slate-800 text-white shadow-xs">
+            <div className="text-left">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block leading-tight">
+                Shift Bills
+              </span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="font-bold text-white font-mono">{bills.length}</span>
+                <span className="text-slate-600">|</span>
+                <span className="text-[10px] text-slate-400">Total:</span>
+                <span className="font-bold text-emerald-400 font-mono">
+                  ₹{shiftTotalPaid.toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Filtered Revenue & Count */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#080d1a] border border-slate-800 text-white shadow-xs">
+            <div className="text-left">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block leading-tight">
+                Filtered Revenue
+              </span>
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="font-bold text-emerald-400 font-mono">
+                  ₹{totalAmount.toLocaleString('en-IN')}
+                </span>
+                <span className="text-slate-600">|</span>
+                <span className="font-semibold text-slate-300 font-mono">
+                  {filtered.length} Bills
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -172,6 +235,7 @@ export const BillsPage: React.FC = () => {
             >
               <option value="All" className="bg-[#0f172a] text-slate-200">All Status</option>
               <option value="paid" className="bg-[#0f172a] text-slate-200">PAID</option>
+              <option value="cancelled" className="bg-[#0f172a] text-slate-200">VOIDED / CANCELLED</option>
             </select>
           </div>
         </div>
@@ -236,10 +300,17 @@ export const BillsPage: React.FC = () => {
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-center">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                      <CheckCircle2 className="w-3 h-3" />
-                      PAID
-                    </span>
+                    {bill.status === 'cancelled' ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950/60 text-rose-400 border border-rose-800">
+                        <Ban className="w-3 h-3" />
+                        VOIDED
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                        <CheckCircle2 className="w-3 h-3" />
+                        PAID
+                      </span>
+                    )}
                   </td>
                   <td className="py-3.5 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
